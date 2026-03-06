@@ -1,0 +1,2795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klara OS — Healthcare Navigation Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   KLARA OS — CSS Design System
+   Color palette, variables, reset
+   ============================================================ */
+:root {
+  --bg-base:        #0d1117;
+  --bg-surface:     #141923;
+  --bg-card:        #1a2233;
+  --bg-card-hover:  #1e2a3d;
+  --border:         rgba(255,255,255,0.07);
+  --border-gold:    rgba(224, 176, 82, 0.35);
+
+  --gold:           #E0B052;
+  --gold-bright:    #F5C966;
+  --gold-dim:       rgba(224, 176, 82, 0.15);
+  --gold-glow:      rgba(224, 176, 82, 0.08);
+
+  --navy:           #0e1e3a;
+  --navy-light:     #162540;
+
+  --text-primary:   #eef0f4;
+  --text-secondary: #8a9ab5;
+  --text-muted:     #4f6080;
+  --text-gold:      #E0B052;
+
+  --green:          #2ecc87;
+  --green-dim:      rgba(46, 204, 135, 0.15);
+  --amber:          #f0a500;
+  --amber-dim:      rgba(240, 165, 0, 0.15);
+  --red:            #e85d5d;
+  --red-dim:        rgba(232, 93, 93, 0.15);
+
+  --radius-sm:      6px;
+  --radius-md:      12px;
+  --radius-lg:      18px;
+  --radius-xl:      24px;
+
+  --shadow-card:    0 4px 24px rgba(0,0,0,0.35);
+  --shadow-gold:    0 0 30px rgba(224,176,82,0.12);
+  --shadow-glow:    0 0 60px rgba(224,176,82,0.06);
+
+  --font-main:      'Outfit', sans-serif;
+  --font-serif:     'DM Serif Display', serif;
+  --font-mono:      'DM Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-main);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 3px; }
+
+/* ============================================================
+   REUSABLE COMPONENTS
+   ============================================================ */
+.label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.label-gold {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  border-color: var(--border-gold);
+  box-shadow: var(--shadow-gold);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--gold);
+  color: #0d1117;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 28px;
+  font-family: var(--font-main);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  letter-spacing: 0.01em;
+}
+
+.btn-primary:hover {
+  background: var(--gold-bright);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(224,176,82,0.3);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 20px;
+  font-family: var(--font-main);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 32px;
+}
+
+.section-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.section-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--gold-dim);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 40px 0;
+}
+
+/* ============================================================
+   TOPBAR / NAV
+   ============================================================ */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(13, 17, 23, 0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-logo {
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, var(--gold) 0%, #c88e1c 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0d1117;
+}
+
+.topbar-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+}
+
+.topbar-name span {
+  color: var(--gold);
+}
+
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.topbar-nav a {
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+}
+
+.topbar-nav a:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+
+.topbar-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--green);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(46,204,135,0.4); }
+  50% { opacity: 0.8; box-shadow: 0 0 0 5px rgba(46,204,135,0); }
+}
+
+/* ============================================================
+   HERO SECTION
+   ============================================================ */
+#hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 80px 32px 60px;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 30%, rgba(224,176,82,0.06) 0%, transparent 70%),
+              radial-gradient(ellipse 40% 40% at 80% 70%, rgba(14,30,58,0.8) 0%, transparent 60%),
+              linear-gradient(180deg, #0a0f18 0%, #0d1117 60%, #0d1117 100%);
+}
+
+/* Sunlight ray effect */
+.hero-rays {
+  position: absolute;
+  top: -10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 500px;
+  opacity: 0.04;
+  background: conic-gradient(from 260deg at 50% 0%, 
+    transparent 0deg, rgba(224,176,82,1) 2deg, transparent 4deg,
+    transparent 10deg, rgba(224,176,82,1) 12deg, transparent 14deg,
+    transparent 22deg, rgba(224,176,82,1) 24deg, transparent 26deg,
+    transparent 35deg, rgba(224,176,82,1) 37deg, transparent 39deg,
+    transparent 50deg, rgba(224,176,82,1) 52deg, transparent 54deg,
+    transparent 66deg, rgba(224,176,82,1) 68deg, transparent 70deg,
+    transparent 80deg, rgba(224,176,82,1) 82deg, transparent 84deg
+  );
+  animation: rays-rotate 30s linear infinite;
+}
+
+@keyframes rays-rotate {
+  from { transform: translateX(-50%) rotate(0deg); }
+  to   { transform: translateX(-50%) rotate(360deg); }
+}
+
+.hero-glow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 300px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(224,176,82,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 760px;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gold-dim);
+  border: 1px solid var(--border-gold);
+  border-radius: 100px;
+  padding: 6px 16px;
+  margin-bottom: 32px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.hero-title {
+  font-family: var(--font-serif);
+  font-size: clamp(40px, 6vw, 68px);
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
+}
+
+.hero-title em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+.hero-sub {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 560px;
+  margin: 0 auto 42px;
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.hero-meta {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  z-index: 2;
+}
+
+.hero-meta-item {
+  text-align: center;
+}
+
+.hero-meta-item .num {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--gold);
+  letter-spacing: -0.02em;
+}
+
+.hero-meta-item .label {
+  display: block;
+  margin-top: 2px;
+}
+
+.hero-scroll {
+  position: absolute;
+  bottom: 30px;
+  right: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  animation: scroll-hint 2s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes scroll-hint {
+  0%, 100% { opacity: 0.4; transform: translateY(0); }
+  50% { opacity: 0.8; transform: translateY(4px); }
+}
+
+/* ============================================================
+   MAIN CONTENT WRAPPER
+   ============================================================ */
+.main-wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 32px 80px;
+}
+
+.section {
+  padding: 64px 0;
+}
+
+/* ============================================================
+   PATIENT INTAKE PANEL
+   ============================================================ */
+.intake-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.intake-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.intake-prompt {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.intake-input-wrap {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.intake-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  font-family: var(--font-main);
+  font-size: 16px;
+  color: var(--text-primary);
+  resize: none;
+  transition: all 0.25s ease;
+  min-height: 100px;
+  line-height: 1.6;
+}
+
+.intake-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(224,176,82,0.08);
+  background: rgba(255,255,255,0.05);
+}
+
+.intake-input::placeholder { color: var(--text-muted); }
+
+.quick-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.quick-tag {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-tag:hover,
+.quick-tag.active {
+  background: var(--gold-dim);
+  border-color: var(--border-gold);
+  color: var(--gold);
+}
+
+.intake-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.intake-disclaimer {
+  font-size: 12px;
+  color: var(--text-muted);
+  max-width: 360px;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   PIPELINE VISUALIZATION
+   ============================================================ */
+.pipeline-wrap {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  position: relative;
+}
+
+@media (max-width: 900px) {
+  .pipeline-wrap {
+    grid-template-columns: 1fr;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+}
+
+.pipeline-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  opacity: 0.35;
+  transition: all 0.4s ease;
+}
+
+.pipeline-stage.active {
+  opacity: 1;
+}
+
+.pipeline-stage.completed {
+  opacity: 0.75;
+}
+
+.pipeline-node {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  z-index: 2;
+  transition: all 0.4s ease;
+  position: relative;
+}
+
+.pipeline-stage.active .pipeline-node {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+  box-shadow: 0 0 0 6px rgba(224,176,82,0.08), 0 0 20px rgba(224,176,82,0.2);
+  animation: node-pulse 1.5s ease infinite;
+}
+
+.pipeline-stage.completed .pipeline-node {
+  border-color: var(--green);
+  background: var(--green-dim);
+}
+
+@keyframes node-pulse {
+  0%, 100% { box-shadow: 0 0 0 6px rgba(224,176,82,0.08), 0 0 20px rgba(224,176,82,0.2); }
+  50% { box-shadow: 0 0 0 10px rgba(224,176,82,0.04), 0 0 30px rgba(224,176,82,0.3); }
+}
+
+.pipeline-connector {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  width: calc(100% - 48px);
+  height: 2px;
+  background: var(--border);
+  transform-origin: left;
+  overflow: hidden;
+}
+
+.pipeline-connector::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s ease;
+}
+
+.pipeline-stage.completed .pipeline-connector::after,
+.pipeline-stage.active .pipeline-connector::after {
+  transform: scaleX(1);
+}
+
+.pipeline-label {
+  margin-top: 12px;
+  font-size: 11px;
+  text-align: center;
+  color: var(--text-muted);
+  font-weight: 500;
+  line-height: 1.3;
+  max-width: 80px;
+}
+
+.pipeline-stage.active .pipeline-label { color: var(--gold); }
+.pipeline-stage.completed .pipeline-label { color: var(--text-secondary); }
+
+.pipeline-status-bar {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.pipeline-status-bar .mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--gold);
+  background: var(--gold-dim);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+/* ============================================================
+   RISK CLASSIFICATION PANEL
+   ============================================================ */
+.risk-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+}
+
+@media (max-width: 700px) { .risk-grid { grid-template-columns: 1fr; } }
+
+.risk-score-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.5s ease;
+}
+
+.risk-gauge {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: conic-gradient(var(--amber) 0deg, var(--amber) 162deg, rgba(255,255,255,0.06) 162deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  position: relative;
+}
+
+.risk-gauge::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: var(--bg-card);
+}
+
+.risk-gauge-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.risk-gauge-inner .score {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--amber);
+  display: block;
+}
+
+.risk-gauge-inner .score-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.risk-level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--amber-dim);
+  border: 1px solid rgba(240,165,0,0.3);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--amber);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.risk-states {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.risk-state-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.risk-state-item:hover,
+.risk-state-item.active {
+  border-color: var(--border-gold);
+}
+
+.risk-state-item.state-green { border-left: 3px solid var(--green); }
+.risk-state-item.state-amber { border-left: 3px solid var(--amber); background: rgba(240,165,0,0.04); }
+.risk-state-item.state-red   { border-left: 3px solid var(--red); }
+
+.risk-state-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.state-green .risk-state-dot { background: var(--green); box-shadow: 0 0 8px rgba(46,204,135,0.5); }
+.state-amber .risk-state-dot { background: var(--amber); box-shadow: 0 0 8px rgba(240,165,0,0.5); animation: amber-pulse 1.5s infinite; }
+.state-red   .risk-state-dot { background: var(--red); }
+
+@keyframes amber-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(240,165,0,0.5); }
+  50% { box-shadow: 0 0 16px rgba(240,165,0,0.8); }
+}
+
+.risk-state-content h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.state-green .risk-state-content h4 { color: var(--green); }
+.state-amber .risk-state-content h4 { color: var(--amber); }
+.state-red   .risk-state-content h4 { color: var(--red); }
+
+.risk-state-content p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+.risk-caveat {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-top: 16px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  display: flex;
+  gap: 10px;
+}
+
+/* ============================================================
+   CARE ROUTING PANEL
+   ============================================================ */
+.routing-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 800px) { .routing-grid { grid-template-columns: 1fr; } }
+
+.routing-rec-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-gold);
+}
+
+.routing-rec-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+}
+
+.routing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gold-dim);
+  border: 1px solid var(--border-gold);
+  border-radius: 100px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.routing-rec-title {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.routing-rec-why {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.routing-meta-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.routing-meta-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.routing-meta-chip span { color: var(--text-primary); font-weight: 500; }
+
+.routing-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.routing-option {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.routing-option:hover {
+  border-color: var(--border-gold);
+  background: var(--gold-glow);
+}
+
+.routing-option.selected {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+}
+
+.routing-option-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.routing-option-type {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.routing-arrow {
+  color: var(--text-muted);
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.routing-option:hover .routing-arrow,
+.routing-option.selected .routing-arrow {
+  color: var(--gold);
+  transform: translateX(3px);
+}
+
+/* Agentic RAG: button on pathway tiles and response panels */
+.routing-option-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.btn-rag {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  background: var(--gold-dim);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-main);
+}
+.btn-rag:hover {
+  background: rgba(224, 176, 82, 0.25);
+  color: var(--gold-bright);
+}
+#rag-panels-container { margin-top: 20px; }
+.rag-panel {
+  display: none;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-top: 12px;
+  border-left: 3px solid var(--gold);
+}
+.rag-panel.show { display: block; }
+.rag-panel h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.rag-panel .rag-section {
+  margin-bottom: 16px;
+}
+.rag-panel .rag-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.rag-panel .rag-section-content,
+.rag-panel .rag-list { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+.rag-panel .rag-list { list-style: none; padding-left: 0; }
+.rag-panel .rag-list li { padding: 4px 0; padding-left: 16px; position: relative; }
+.rag-panel .rag-list li::before { content: '•'; color: var(--gold); position: absolute; left: 0; }
+.rag-panel .rag-alternatives .rag-alt-item { margin-bottom: 8px; }
+.rag-panel .rag-confidence { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+.rag-panel .rag-sources a { color: var(--gold); text-decoration: none; }
+.rag-panel .rag-sources a:hover { text-decoration: underline; }
+
+/* ============================================================
+   SYSTEM CONTEXT LAYER
+   ============================================================ */
+.context-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 750px) { .context-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.context-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.context-tile:hover {
+  border-color: var(--border-gold);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+}
+
+.context-tile:hover .context-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.context-tile-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.context-tile-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.context-tile-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.context-tile-status {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.context-tooltip {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(14,30,58,0.98) 30%);
+  padding: 40px 20px 20px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.context-tooltip strong {
+  color: var(--gold);
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   STRUCTURED INTAKE SUMMARY
+   ============================================================ */
+.summary-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.summary-header {
+  background: var(--navy-light);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.summary-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.summary-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.summary-header .timestamp {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.summary-body {
+  padding: 28px;
+}
+
+.summary-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+@media (max-width: 600px) { .summary-fields { grid-template-columns: 1fr; } }
+
+.summary-field {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+.summary-field:nth-child(even) { border-right: none; }
+.summary-field:nth-last-child(-n+2) { border-bottom: none; }
+
+.summary-field-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.summary-field-value {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.summary-field-value.mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.summary-notes {
+  padding: 20px 28px;
+  background: rgba(255,255,255,0.02);
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.summary-actions {
+  padding: 20px 28px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-main);
+}
+
+.export-btn:hover {
+  border-color: var(--border-gold);
+  color: var(--gold);
+  background: var(--gold-dim);
+}
+
+.export-btn.primary-export {
+  background: var(--gold-dim);
+  border-color: var(--border-gold);
+  color: var(--gold);
+}
+
+/* ============================================================
+   GOVERNANCE PANEL
+   ============================================================ */
+.governance-grid {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 24px;
+}
+
+@media (max-width: 750px) { .governance-grid { grid-template-columns: 1fr; } }
+
+.governance-main {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+}
+
+.governance-main blockquote {
+  font-size: 17px;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  border-left: 3px solid var(--gold);
+  padding-left: 20px;
+  margin: 24px 0;
+}
+
+.governance-principles {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.governance-principle {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.gov-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.gov-text h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+}
+
+.gov-text p {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.governance-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gov-metric {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+}
+
+.gov-metric-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.gov-metric-value {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.gov-metric-bar {
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.gov-metric-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+  border-radius: 2px;
+  transition: width 1.5s ease;
+}
+
+/* ============================================================
+   EXECUTIVE DASHBOARD
+   ============================================================ */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 800px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.dash-metric {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.dash-metric:hover {
+  border-color: var(--border-gold);
+  transform: translateY(-2px);
+}
+
+.dash-metric-icon {
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.dash-metric-value {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--gold);
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
+}
+
+.dash-metric-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.dash-chart-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 700px) { .dash-chart-row { grid-template-columns: 1fr; } }
+
+.dash-chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.dash-chart-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+/* Simple bar chart */
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 100px;
+}
+
+.bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.bar-fill {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  transition: height 1s ease;
+  min-height: 4px;
+}
+
+.bar-fill.muted { background: rgba(255,255,255,0.1); }
+
+.bar-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Donut chart (CSS only) */
+.donut-chart {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.donut-svg {
+  flex-shrink: 0;
+}
+
+.donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.donut-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.donut-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  border-top: 1px solid var(--border);
+  background: var(--bg-surface);
+  padding: 32px;
+}
+
+.footer-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.footer-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 480px;
+  line-height: 1.5;
+}
+
+.footer-version {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   UTILITIES / ANIMATIONS
+   ============================================================ */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.shimmer {
+  background: linear-gradient(90deg, var(--bg-card) 0%, rgba(255,255,255,0.04) 50%, var(--bg-card) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.processing-dots span {
+  display: inline-block;
+  animation: dot-bounce 1.2s infinite;
+}
+
+.processing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.processing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+  40% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Hidden class for toggling */
+.hidden { display: none !important; }
+
+/* Section separator label */
+.section-sep {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0 40px;
+}
+
+.section-sep::before,
+.section-sep::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.section-sep-text {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Notification toast */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-md);
+  padding: 14px 20px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  z-index: 999;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: all 0.4s ease;
+  max-width: 300px;
+}
+
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast-icon { color: var(--gold); margin-right: 8px; }
+
+</style>
+</head>
+
+<body>
+
+<!-- ============================================================
+     TOPBAR
+     ============================================================ -->
+<nav class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">K</div>
+    <div class="topbar-name"><span>Klara</span> OS</div>
+    <div style="font-size:10px;color:var(--text-muted);background:rgba(255,255,255,0.05);padding:3px 8px;border-radius:4px;margin-left:6px;letter-spacing:0.08em;">v2.4.1</div>
+  </div>
+  <nav class="topbar-nav">
+    <a href="#intake">Intake</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#routing">Routing</a>
+    <a href="#context">System</a>
+    <a href="#dashboard">Dashboard</a>
+  </nav>
+  <div class="topbar-status">
+    <div class="status-dot"></div>
+    All Systems Operational
+  </div>
+</nav>
+
+
+<!-- ============================================================
+     SECTION 1: HERO
+     ============================================================ -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-rays"></div>
+  <div class="hero-glow"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <span>⬡</span>
+      Nova Scotia Digital Health Initiative
+    </div>
+
+    <h1 class="hero-title">
+      Navigating Care<br>with <em>Clarity</em>
+    </h1>
+
+    <p class="hero-sub">
+      A navigation intelligence layer helping Nova Scotians reach the right care, at the right time — with calm, clinical precision.
+    </p>
+
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="scrollToIntake()">
+        ◎ &nbsp;Start Assessment
+      </button>
+      <button class="btn-secondary" onclick="document.getElementById('pipeline').scrollIntoView({behavior:'smooth'})">
+        View System Architecture →
+      </button>
+    </div>
+  </div>
+
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <div class="num">38%</div>
+      <div class="label">ED Deflection Rate</div>
+    </div>
+    <div style="width:1px;height:36px;background:var(--border)"></div>
+    <div class="hero-meta-item">
+      <div class="num">8.4s</div>
+      <div class="label">Avg. Routing Time</div>
+    </div>
+    <div style="width:1px;height:36px;background:var(--border)"></div>
+    <div class="hero-meta-item">
+      <div class="num">94.1%</div>
+      <div class="label">Pathway Accuracy</div>
+    </div>
+  </div>
+
+  <div class="hero-scroll">▼ &nbsp;Explore Klara</div>
+</section>
+
+
+<!-- ============================================================
+     MAIN CONTENT
+     ============================================================ -->
+<div class="main-wrap">
+
+  <!-- ============================================================
+       SECTION 2: PATIENT INTAKE
+       ============================================================ -->
+  <section id="intake" class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon">◎</div>
+      <div>
+        <div class="label-gold">Patient Intake</div>
+        <h2>Describe What You're Experiencing</h2>
+      </div>
+    </div>
+
+    <div class="intake-panel">
+      <div class="intake-prompt">Tell me what you're experiencing. Be as specific or as brief as you like.</div>
+
+      <div class="intake-input-wrap">
+        <textarea
+          class="intake-input"
+          id="symptomInput"
+          placeholder="e.g. I've had a mild fever and sore throat for two days. My chest feels a bit tight when I breathe deeply..."
+          rows="4"
+        ></textarea>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div class="label" style="margin-bottom:10px;">Quick symptom tags</div>
+        <div class="quick-tags" id="quickTags">
+          <button class="quick-tag" data-symptom="chest pain">❤ Chest Pain</button>
+          <button class="quick-tag" data-symptom="fever">🌡 Fever</button>
+          <button class="quick-tag" data-symptom="difficulty breathing">🫁 Breathing</button>
+          <button class="quick-tag" data-symptom="rash or skin concern">◉ Rash / Skin</button>
+          <button class="quick-tag" data-symptom="mental health concern">⬡ Mental Health</button>
+          <button class="quick-tag" data-symptom="medication question">⬟ Medication</button>
+          <button class="quick-tag" data-symptom="injury or pain">⚡ Injury / Pain</button>
+          <button class="quick-tag" data-symptom="pediatric concern">✦ Child / Pediatric</button>
+        </div>
+      </div>
+
+      <div class="intake-footer">
+        <div class="intake-disclaimer">
+          ⚠ If you are experiencing a medical emergency, please call 911 immediately. Klara does not replace emergency services.
+        </div>
+        <button class="btn-primary" id="analyzeBtn" onclick="startAnalysis()">
+          ◎ &nbsp;Analyze Symptoms
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ============================================================
+       SECTION 3: SYSTEM PIPELINE
+       ============================================================ -->
+  <section id="pipeline" class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon">⬟</div>
+      <div>
+        <div class="label-gold">Klara Engine</div>
+        <h2>System Pipeline Visualization</h2>
+      </div>
+    </div>
+
+    <div class="card" style="padding:40px 32px 36px;">
+      <div class="pipeline-wrap" id="pipelineWrap">
+
+        <!-- Stage 1: Patient Input -->
+        <div class="pipeline-stage" id="stage-0">
+          <div class="pipeline-node">◎</div>
+          <div class="pipeline-connector"></div>
+          <div class="pipeline-label">Patient<br>Input</div>
+        </div>
+
+        <!-- Stage 2: Symptom Parsing -->
+        <div class="pipeline-stage" id="stage-1">
+          <div class="pipeline-node">⬡</div>
+          <div class="pipeline-connector"></div>
+          <div class="pipeline-label">Symptom<br>Parsing</div>
+        </div>
+
+        <!-- Stage 3: Risk Classification -->
+        <div class="pipeline-stage" id="stage-2">
+          <div class="pipeline-node">△</div>
+          <div class="pipeline-connector"></div>
+          <div class="pipeline-label">Risk<br>Classification</div>
+        </div>
+
+        <!-- Stage 4: Provincial Context -->
+        <div class="pipeline-stage" id="stage-3">
+          <div class="pipeline-node">⊕</div>
+          <div class="pipeline-connector"></div>
+          <div class="pipeline-label">Provincial<br>Context</div>
+        </div>
+
+        <!-- Stage 5: Capacity Routing -->
+        <div class="pipeline-stage" id="stage-4">
+          <div class="pipeline-node">⬟</div>
+          <div class="pipeline-connector"></div>
+          <div class="pipeline-label">Capacity<br>Routing</div>
+        </div>
+
+        <!-- Stage 6: Care Recommendation -->
+        <div class="pipeline-stage" id="stage-5">
+          <div class="pipeline-node">✦</div>
+          <div class="pipeline-connector"></div>
+          <div class="pipeline-label">Care<br>Recommendation</div>
+        </div>
+
+        <!-- Stage 7: Structured Output -->
+        <div class="pipeline-stage" id="stage-6">
+          <div class="pipeline-node">≡</div>
+          <div class="pipeline-label">Structured<br>Output</div>
+        </div>
+
+      </div>
+
+      <div class="pipeline-status-bar" id="pipelineStatus">
+        <span style="color:var(--text-muted);">◌</span>
+        <span>Pipeline idle — enter symptoms above to begin analysis</span>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+          <span class="mono">MODE: STANDBY</span>
+          <span class="mono" id="pipelineTime">00:00.000</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ============================================================
+       SECTION 4: RISK CLASSIFICATION
+       ============================================================ -->
+  <section id="risk" class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon">△</div>
+      <div>
+        <div class="label-gold">Risk Assessment</div>
+        <h2>Risk Classification Panel</h2>
+      </div>
+    </div>
+
+    <div class="risk-grid">
+      <!-- Score card -->
+      <div class="risk-score-card" id="riskScoreCard">
+        <div class="risk-gauge" id="riskGauge">
+          <div class="risk-gauge-inner">
+            <span class="score" id="riskScoreNum">45</span>
+            <span class="score-label">/ 100</span>
+          </div>
+        </div>
+        <div class="risk-level-badge" id="riskBadge">
+          ◑ &nbsp;Moderate
+        </div>
+        <div style="font-size:13px;color:var(--text-muted);text-align:center;line-height:1.5;">
+          Clinician evaluation<br>recommended
+        </div>
+      </div>
+
+      <!-- Risk states -->
+      <div>
+        <div class="risk-states">
+          <div class="risk-state-item state-green" id="rs-green">
+            <div class="risk-state-dot"></div>
+            <div class="risk-state-content">
+              <h4>Safe / Informational</h4>
+              <p>Symptoms are non-urgent. Self-care guidance, pharmacy prescribing, or scheduled primary care is appropriate. No emergency indicators present.</p>
+            </div>
+          </div>
+          <div class="risk-state-item state-amber active" id="rs-amber" style="border-color:rgba(240,165,0,0.4);background:rgba(240,165,0,0.06);">
+            <div class="risk-state-dot"></div>
+            <div class="risk-state-content">
+              <h4>Clinician Evaluation Needed</h4>
+              <p>Symptoms indicate moderate concern. Virtual care consultation or timely primary care visit is recommended. Monitoring advised.</p>
+            </div>
+          </div>
+          <div class="risk-state-item state-red" id="rs-red">
+            <div class="risk-state-dot"></div>
+            <div class="risk-state-content">
+              <h4>Urgent Care Required</h4>
+              <p>Urgent indicators detected. Emergency department or urgent treatment centre is recommended. Emergency override active.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="risk-caveat">
+          <span style="font-size:16px;flex-shrink:0;">⚠</span>
+          <span>Klara does not diagnose medical conditions. This risk classification reflects urgency signals detected in the information provided. Emergency indicators always override system routing and cannot be suppressed.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ============================================================
+       SECTION 5: CARE ROUTING
+       ============================================================ -->
+  <section id="routing" class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon">✦</div>
+      <div>
+        <div class="label-gold">Pathway Routing</div>
+        <h2>Care Routing Recommendation</h2>
+      </div>
+    </div>
+
+    <div class="routing-grid">
+      <!-- Main recommendation -->
+      <div class="routing-rec-card">
+        <div class="routing-badge">✦ &nbsp;Recommended Pathway</div>
+        <div class="routing-rec-title">Virtual Care Consultation</div>
+        <div class="routing-rec-why">
+          Symptoms indicate moderate concern with no immediate emergency indicators present. A virtual care consultation allows timely clinician assessment without unnecessary emergency department utilization.
+        </div>
+
+        <div class="routing-meta-row">
+          <div class="routing-meta-chip">
+            ⏱ Wait: <span>&nbsp;~12 min</span>
+          </div>
+          <div class="routing-meta-chip">
+            📍 Availability: <span>&nbsp;Province-wide</span>
+          </div>
+          <div class="routing-meta-chip">
+            💻 Mode: <span>&nbsp;Video / Phone</span>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;">
+          <button class="btn-primary" onclick="showToast('Connecting to VirtualCareNS...')">
+            Connect Now →
+          </button>
+          <button class="btn-secondary" onclick="showToast('Intake summary prepared for clinician.')">
+            Prepare Summary
+          </button>
+        </div>
+      </div>
+
+      <!-- Pathway options -->
+      <div>
+        <div class="label" style="margin-bottom:12px;">All pathway options</div>
+        <div class="routing-options" id="routingOptions">
+
+          <div class="routing-option selected" data-pathway-id="virtualcarens" onclick="selectRoute(this)">
+            <div>
+              <div class="routing-option-name">💻 VirtualCareNS</div>
+              <div class="routing-option-type">Telehealth · Province-wide</div>
+              <div class="routing-option-actions">
+                <button type="button" class="btn-rag" onclick="event.stopPropagation(); handlePathwayClick('virtualcarens')">Agentic RAG</button>
+              </div>
+            </div>
+            <div class="routing-arrow">→</div>
+          </div>
+
+          <div class="routing-option" data-pathway-id="pharmacy" onclick="selectRoute(this)">
+            <div>
+              <div class="routing-option-name">💊 Pharmacy Prescribing</div>
+              <div class="routing-option-type">19+ eligible conditions · NS Pharmacists</div>
+              <div class="routing-option-actions">
+                <button type="button" class="btn-rag" onclick="event.stopPropagation(); handlePathwayClick('pharmacy')">Agentic RAG</button>
+              </div>
+            </div>
+            <div class="routing-arrow">→</div>
+          </div>
+
+          <div class="routing-option" data-pathway-id="primarycare" onclick="selectRoute(this)">
+            <div>
+              <div class="routing-option-name">🏥 Primary Care Clinic</div>
+              <div class="routing-option-type">Collaborative Health Centres · ~2.4km</div>
+              <div class="routing-option-actions">
+                <button type="button" class="btn-rag" onclick="event.stopPropagation(); handlePathwayClick('primarycare')">Agentic RAG</button>
+              </div>
+            </div>
+            <div class="routing-arrow">→</div>
+          </div>
+
+          <div class="routing-option" data-pathway-id="urgent" onclick="selectRoute(this)">
+            <div>
+              <div class="routing-option-name">⚡ Urgent Treatment Centre</div>
+              <div class="routing-option-type">Dartmouth UTC · Est. 35 min wait</div>
+              <div class="routing-option-actions">
+                <button type="button" class="btn-rag" onclick="event.stopPropagation(); handlePathwayClick('urgent')">Agentic RAG</button>
+              </div>
+            </div>
+            <div class="routing-arrow">→</div>
+          </div>
+
+          <div class="routing-option" data-pathway-id="emergency" onclick="selectRoute(this)">
+            <div>
+              <div class="routing-option-name">🚨 Emergency Department</div>
+              <div class="routing-option-type">QEII HSC · Emergency indicators only</div>
+              <div class="routing-option-actions">
+                <button type="button" class="btn-rag" onclick="event.stopPropagation(); handlePathwayClick('emergency')">Agentic RAG</button>
+              </div>
+            </div>
+            <div class="routing-arrow">→</div>
+          </div>
+
+        </div>
+
+        <!-- Agentic RAG response panels (one per pathway); populated by script.js -->
+        <div id="rag-panels-container">
+          <div id="rag-panel-virtualcarens" class="rag-panel" data-pathway="virtualcarens" aria-hidden="true"></div>
+          <div id="rag-panel-pharmacy" class="rag-panel" data-pathway="pharmacy" aria-hidden="true"></div>
+          <div id="rag-panel-primarycare" class="rag-panel" data-pathway="primarycare" aria-hidden="true"></div>
+          <div id="rag-panel-urgent" class="rag-panel" data-pathway="urgent" aria-hidden="true"></div>
+          <div id="rag-panel-emergency" class="rag-panel" data-pathway="emergency" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ============================================================
+       SECTION 6: SYSTEM CONTEXT LAYER
+       ============================================================ -->
+  <section id="context" class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon">⊕</div>
+      <div>
+        <div class="label-gold">Infrastructure Integration</div>
+        <h2>Nova Scotia Digital Health Ecosystem</h2>
+      </div>
+    </div>
+    <p style="color:var(--text-secondary);font-size:14px;max-width:600px;margin-bottom:32px;line-height:1.6;">
+      Klara integrates with Nova Scotia's existing digital health infrastructure. Hover each tile to see how Klara enhances each system.
+    </p>
+
+    <div class="context-grid">
+
+      <div class="context-tile">
+        <span class="context-tile-icon">⬟</span>
+        <div class="context-tile-name">OPOR</div>
+        <div class="context-tile-sub">One Person One Record</div>
+        <div class="context-tile-status"></div>
+        <div class="context-tooltip">
+          <strong>Klara + OPOR</strong>
+          Structured intake summaries are prepared in clinician-ready format for seamless OPOR integration, reducing documentation burden at point of care.
+        </div>
+      </div>
+
+      <div class="context-tile">
+        <span class="context-tile-icon">💻</span>
+        <div class="context-tile-name">Telehealth</div>
+        <div class="context-tile-sub">VirtualCareNS Platform</div>
+        <div class="context-tile-status"></div>
+        <div class="context-tooltip">
+          <strong>Klara + Telehealth</strong>
+          Klara routes appropriate cases directly to VirtualCareNS, pre-populating session context so clinicians can begin assessment immediately.
+        </div>
+      </div>
+
+      <div class="context-tile">
+        <span class="context-tile-icon">📋</span>
+        <div class="context-tile-name">EMR Systems</div>
+        <div class="context-tile-sub">Med Access · Accuro</div>
+        <div class="context-tile-status"></div>
+        <div class="context-tooltip">
+          <strong>Klara + EMR</strong>
+          Structured intake data is exported in HL7 FHIR format compatible with Med Access and Accuro, enabling automated chart population.
+        </div>
+      </div>
+
+      <div class="context-tile">
+        <span class="context-tile-icon">💊</span>
+        <div class="context-tile-name">DIS / SHARE</div>
+        <div class="context-tile-sub">Provincial Medication System</div>
+        <div class="context-tile-status"></div>
+        <div class="context-tooltip">
+          <strong>Klara + DIS</strong>
+          Medication questions are contextualized against DIS records (with consent), enabling safer routing for complex pharmaceutical queries.
+        </div>
+      </div>
+
+      <div class="context-tile">
+        <span class="context-tile-icon">🤖</span>
+        <div class="context-tile-name">AI Scribe</div>
+        <div class="context-tile-sub">Pre-visit Documentation</div>
+        <div class="context-tile-status" style="background:var(--amber);"></div>
+        <div class="context-tooltip">
+          <strong>Klara + AI Scribe (Pilot)</strong>
+          Klara's structured intake output feeds the AI Scribe pilot, generating pre-visit SOAP note drafts to reduce clinician documentation time by up to 40%.
+        </div>
+      </div>
+
+      <div class="context-tile">
+        <span class="context-tile-icon">🌲</span>
+        <div class="context-tile-name">Rural Network</div>
+        <div class="context-tile-sub">Rural Partner Clinicians</div>
+        <div class="context-tile-status"></div>
+        <div class="context-tooltip">
+          <strong>Klara + Rural Network</strong>
+          Capacity-aware routing prioritizes rural access pathways, connecting remote patients with nearby collaborative health centres and paramedicine programs.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ============================================================
+       SECTION 7: STRUCTURED INTAKE SUMMARY
+       ============================================================ -->
+  <section id="summary" class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon">≡</div>
+      <div>
+        <div class="label-gold">Clinician Output</div>
+        <h2>Structured Intake Summary</h2>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-header">
+        <div class="summary-header-left">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--green);"></div>
+          <h3>Klara Intake Summary — Draft</h3>
+        </div>
+        <div class="timestamp" id="summaryTimestamp">2025-01-15 · 14:37:22 AST</div>
+      </div>
+
+      <div class="summary-body">
+        <div class="summary-fields">
+
+          <div class="summary-field">
+            <div class="summary-field-label">Patient Context</div>
+            <div class="summary-field-value">Adult patient, self-reported via Klara OS. Region: Halifax, NS. Language: English.</div>
+          </div>
+
+          <div class="summary-field">
+            <div class="summary-field-label">Primary Symptoms</div>
+            <div class="summary-field-value">Mild fever, sore throat, tight chest sensation on deep inspiration. No reported loss of consciousness.</div>
+          </div>
+
+          <div class="summary-field">
+            <div class="summary-field-label">Duration</div>
+            <div class="summary-field-value mono">48 hours · Progressive onset</div>
+          </div>
+
+          <div class="summary-field">
+            <div class="summary-field-label">Risk Classification</div>
+            <div class="summary-field-value" style="color:var(--amber);">◑ &nbsp;Moderate — Score 45/100</div>
+          </div>
+
+          <div class="summary-field">
+            <div class="summary-field-label">Recommended Pathway</div>
+            <div class="summary-field-value" style="color:var(--gold);">Virtual Care Consultation (VirtualCareNS)</div>
+          </div>
+
+          <div class="summary-field">
+            <div class="summary-field-label">Emergency Indicators</div>
+            <div class="summary-field-value" style="color:var(--green);">✓ &nbsp;None detected</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="summary-notes">
+        <div class="label" style="margin-bottom:8px;">Clinician Notes Scaffold</div>
+        Patient presents with a 48-hour history of mild febrile illness with pharyngeal symptoms and atypical chest discomfort. No hemodynamic instability indicators. Consider respiratory vs. pharyngeal aetiology. URTI with reactive airway possible. Assess for streptococcal pharyngitis. Monitor oxygen saturation if chest symptoms persist.
+      </div>
+
+      <div class="summary-actions">
+        <button class="export-btn primary-export" onclick="showToast('Sending to OPOR system...')">
+          ⬟ &nbsp;Send to OPOR
+        </button>
+        <button class="export-btn" onclick="showToast('Downloading summary as PDF...')">
+          ↓ &nbsp;Download PDF
+        </button>
+        <button class="export-btn" onclick="showToast('Clinician share link generated.')">
+          ↗ &nbsp;Share with Clinician
+        </button>
+        <button class="export-btn" onclick="showToast('Syncing to AI Scribe pilot...')">
+          🤖 &nbsp;AI Scribe Export
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ============================================================
+       SECTION 8: GOVERNANCE & SAFETY
+       ============================================================ -->
+  <section id="governance" class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon">⬡</div>
+      <div>
+        <div class="label-gold">Safety & Accountability</div>
+        <h2>Governance & System Boundaries</h2>
+      </div>
+    </div>
+
+    <div class="governance-grid">
+      <div class="governance-main">
+        <div class="label" style="margin-bottom:12px;">System Mandate</div>
+        <blockquote>
+          "Klara is a navigation system designed to guide access to care. It does not diagnose medical conditions and does not replace clinical judgement. Emergency indicators always override system routing and cannot be suppressed by any operator or configuration."
+        </blockquote>
+
+        <div class="governance-principles">
+          <div class="governance-principle">
+            <div class="gov-icon">🔒</div>
+            <div class="gov-text">
+              <h4>No Diagnostic Authority</h4>
+              <p>Klara classifies urgency signals, not medical conditions. All diagnostic authority remains with licensed clinicians.</p>
+            </div>
+          </div>
+          <div class="governance-principle">
+            <div class="gov-icon">📋</div>
+            <div class="gov-text">
+              <h4>Full Audit Trail</h4>
+              <p>Every routing decision is logged with timestamp, signal weights, and confidence scores. Full audit log accessible to health authority administrators.</p>
+            </div>
+          </div>
+          <div class="governance-principle">
+            <div class="gov-icon">🚨</div>
+            <div class="gov-text">
+              <h4>Emergency Override</h4>
+              <p>Any detected emergency indicator triggers an immediate redirect to 911 guidance. This override cannot be disabled by configuration or user input.</p>
+            </div>
+          </div>
+          <div class="governance-principle">
+            <div class="gov-icon">⬡</div>
+            <div class="gov-text">
+              <h4>AI Transparency</h4>
+              <p>All AI-assisted routing decisions include confidence scores and reasoning summaries. Users are always informed they are interacting with an AI navigation system.</p>
+            </div>
+          </div>
+          <div class="governance-principle">
+            <div class="gov-icon">🔐</div>
+            <div class="gov-text">
+              <h4>Privacy by Design</h4>
+              <p>No personal health information is retained after session close. Session data is encrypted in transit and processed in compliance with Nova Scotia PHIA.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="governance-sidebar">
+
+        <div class="gov-metric">
+          <div class="gov-metric-label">AI Confidence Score</div>
+          <div class="gov-metric-value" id="confScore">87.4%</div>
+          <div class="gov-metric-bar">
+            <div class="gov-metric-fill" style="width:87.4%"></div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">Based on symptom completeness and pattern match</div>
+        </div>
+
+        <div class="gov-metric">
+          <div class="gov-metric-label">Audit Log</div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);line-height:1.8;margin-top:6px;">
+            <div style="color:var(--green);">✓ 14:37:18 · Session initiated</div>
+            <div style="color:var(--text-secondary);">→ 14:37:19 · Symptom parse complete</div>
+            <div style="color:var(--text-secondary);">→ 14:37:20 · Risk: MODERATE (45/100)</div>
+            <div style="color:var(--gold);">→ 14:37:21 · Route: VirtualCareNS</div>
+            <div style="color:var(--text-secondary);">→ 14:37:22 · Summary generated</div>
+          </div>
+        </div>
+
+        <div class="gov-metric">
+          <div class="gov-metric-label">System Certification</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);">
+              <span style="color:var(--green);">✓</span> NS Health Authority Approved
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);">
+              <span style="color:var(--green);">✓</span> PHIA Compliant
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);">
+              <span style="color:var(--green);">✓</span> PIPEDA Aligned
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary);">
+              <span style="color:var(--amber);">◑</span> Health Canada SaMD Review (Pending)
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ============================================================
+       SECTION 9: EXECUTIVE DASHBOARD
+       ============================================================ -->
+  <section id="dashboard" class="section fade-in">
+    <div class="section-header">
+      <div class="section-icon">◈</div>
+      <div>
+        <div class="label-gold">System Intelligence</div>
+        <h2>Executive System Dashboard</h2>
+      </div>
+    </div>
+
+    <!-- KPI Metrics -->
+    <div class="dashboard-grid">
+      <div class="dash-metric">
+        <div class="dash-metric-icon">🏥</div>
+        <div class="dash-metric-value" id="kpi1">38%</div>
+        <div class="dash-metric-label">Estimated ED<br>Deflection Rate</div>
+      </div>
+      <div class="dash-metric">
+        <div class="dash-metric-icon">⏱</div>
+        <div class="dash-metric-value" id="kpi2">8.4s</div>
+        <div class="dash-metric-label">Average Routing<br>Time</div>
+      </div>
+      <div class="dash-metric">
+        <div class="dash-metric-icon">💻</div>
+        <div class="dash-metric-value" id="kpi3">61%</div>
+        <div class="dash-metric-label">Telehealth<br>Utilization</div>
+      </div>
+      <div class="dash-metric">
+        <div class="dash-metric-icon">🌲</div>
+        <div class="dash-metric-value" id="kpi4">2,847</div>
+        <div class="dash-metric-label">Rural Access<br>Sessions</div>
+      </div>
+    </div>
+
+    <div class="dash-chart-row">
+      <!-- Routing Distribution Bar Chart -->
+      <div class="dash-chart-card">
+        <div class="dash-chart-title">Routing Distribution — Current Week</div>
+        <div class="bar-chart" id="barChart">
+          <div class="bar-item">
+            <div class="bar-fill" style="height:61%"></div>
+            <div class="bar-label">Virtual<br>Care</div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-fill" style="height:18%;background:linear-gradient(180deg,rgba(46,204,135,0.8),rgba(46,204,135,0.5))"></div>
+            <div class="bar-label">Pharmacy</div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-fill muted" style="height:10%"></div>
+            <div class="bar-label">Primary<br>Care</div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-fill" style="height:7%;background:linear-gradient(180deg,rgba(240,165,0,0.8),rgba(240,165,0,0.5))"></div>
+            <div class="bar-label">Urgent<br>TX</div>
+          </div>
+          <div class="bar-item">
+            <div class="bar-fill" style="height:4%;background:linear-gradient(180deg,rgba(232,93,93,0.8),rgba(232,93,93,0.5))"></div>
+            <div class="bar-label">ED</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pathway Donut (CSS SVG) -->
+      <div class="dash-chart-card">
+        <div class="dash-chart-title">Risk Classification Breakdown</div>
+        <div class="donut-chart">
+          <svg class="donut-svg" width="120" height="120" viewBox="0 0 120 120">
+            <!-- Green: 62% = 222.48deg -->
+            <circle cx="60" cy="60" r="45" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="18"/>
+            <circle cx="60" cy="60" r="45" fill="none" stroke="#2ecc87" stroke-width="18"
+              stroke-dasharray="62 38" stroke-dashoffset="25"
+              transform="rotate(-90 60 60)" stroke-linecap="butt"
+              style="stroke-dasharray: calc(62 * 2.83) calc(38 * 2.83)"/>
+            <circle cx="60" cy="60" r="45" fill="none" stroke="#f0a500" stroke-width="18"
+              stroke-dasharray="calc(28 * 2.83) calc(72 * 2.83)"
+              stroke-dashoffset="calc(-62 * 2.83 + 25)"
+              transform="rotate(-90 60 60)"/>
+            <circle cx="60" cy="60" r="45" fill="none" stroke="#e85d5d" stroke-width="18"
+              stroke-dasharray="calc(10 * 2.83) calc(90 * 2.83)"
+              stroke-dashoffset="calc(-90 * 2.83 + 25)"
+              transform="rotate(-90 60 60)"/>
+            <text x="60" y="56" text-anchor="middle" fill="#eef0f4" font-size="18" font-family="DM Mono" font-weight="400">62%</text>
+            <text x="60" y="71" text-anchor="middle" fill="#8a9ab5" font-size="9" font-family="Outfit">Low Risk</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="donut-legend-item">
+              <div class="donut-dot" style="background:var(--green)"></div>
+              <span>Low Risk · 62%</span>
+            </div>
+            <div class="donut-legend-item">
+              <div class="donut-dot" style="background:var(--amber)"></div>
+              <span>Moderate · 28%</span>
+            </div>
+            <div class="donut-legend-item">
+              <div class="donut-dot" style="background:var(--red)"></div>
+              <span>Urgent · 10%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System health row -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px;">
+      <div class="card" style="padding:20px;">
+        <div class="label" style="margin-bottom:12px;">System Health</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+            <span style="color:var(--text-secondary);">API Latency</span>
+            <span style="font-family:var(--font-mono);color:var(--green);">124ms</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+            <span style="color:var(--text-secondary);">Uptime</span>
+            <span style="font-family:var(--font-mono);color:var(--green);">99.97%</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+            <span style="color:var(--text-secondary);">Active Sessions</span>
+            <span style="font-family:var(--font-mono);color:var(--gold);">1,204</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:20px;">
+        <div class="label" style="margin-bottom:12px;">Weekly Volume</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+            <span style="color:var(--text-secondary);">Assessments</span>
+            <span style="font-family:var(--font-mono);color:var(--text-primary);">14,882</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+            <span style="color:var(--text-secondary);">Routings</span>
+            <span style="font-family:var(--font-mono);color:var(--text-primary);">14,651</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+            <span style="color:var(--text-secondary);">Escalations</span>
+            <span style="font-family:var(--font-mono);color:var(--red);">231</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:20px;">
+        <div class="label" style="margin-bottom:12px;">Rural Impact</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+            <span style="color:var(--text-secondary);">Rural Sessions</span>
+            <span style="font-family:var(--font-mono);color:var(--text-primary);">2,847</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+            <span style="color:var(--text-secondary);">Travel Avoided</span>
+            <span style="font-family:var(--font-mono);color:var(--green);">~48,300km</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+            <span style="color:var(--text-secondary);">Partner Clinics</span>
+            <span style="font-family:var(--font-mono);color:var(--text-primary);">38</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /main-wrap -->
+
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="topbar-logo" style="width:24px;height:24px;font-size:12px;">K</div>
+      Klara OS
+    </div>
+    <div class="footer-note">
+      Klara is a navigation intelligence system. It does not diagnose medical conditions or replace clinical judgement. For emergencies, call 911. Developed for Nova Scotia Health Authority.
+    </div>
+    <div class="footer-version">v2.4.1 · NS-DH · © 2025</div>
+  </div>
+</footer>
+
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- Agentic RAG: pathway-specific navigation (script.js) -->
+<script src="script.js"></script>
+
+<!-- ============================================================
+     JAVASCRIPT — Interactions & Simulations
+     ============================================================ -->
+<script>
+
+/* ============================================================
+   SECTION: Quick symptom tag toggling
+   ============================================================ */
+document.querySelectorAll('.quick-tag').forEach(tag => {
+  tag.addEventListener('click', () => {
+    const symptom = tag.dataset.symptom;
+    const input = document.getElementById('symptomInput');
+
+    if (tag.classList.contains('active')) {
+      tag.classList.remove('active');
+      // Remove symptom text from input
+      input.value = input.value.replace(', ' + symptom, '').replace(symptom, '').trim();
+    } else {
+      tag.classList.add('active');
+      input.value = input.value
+        ? input.value + ', ' + symptom
+        : symptom.charAt(0).toUpperCase() + symptom.slice(1);
+    }
+  });
+});
+
+/* ============================================================
+   SECTION: Scroll to intake
+   ============================================================ */
+function scrollToIntake() {
+  document.getElementById('intake').scrollIntoView({ behavior: 'smooth' });
+  setTimeout(() => {
+    document.getElementById('symptomInput').focus();
+  }, 600);
+}
+
+/* ============================================================
+   SECTION: Main analysis simulation
+   Pipeline animation, risk update, routing
+   ============================================================ */
+let analysisRunning = false;
+
+function startAnalysis() {
+  if (analysisRunning) return;
+
+  const input = document.getElementById('symptomInput').value.trim();
+  if (!input) {
+    document.getElementById('symptomInput').focus();
+    document.getElementById('symptomInput').style.borderColor = 'var(--amber)';
+    setTimeout(() => {
+      document.getElementById('symptomInput').style.borderColor = '';
+    }, 2000);
+    return;
+  }
+
+  analysisRunning = true;
+
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="processing-dots"><span>●</span><span>●</span><span>●</span></span>&nbsp; Analyzing';
+
+  // Determine risk from keywords
+  const lowerInput = input.toLowerCase();
+  let riskLevel = 'moderate';
+  let riskScore = 45;
+
+  if (lowerInput.includes('chest pain') || lowerInput.includes('can\'t breathe') || lowerInput.includes('unconscious')) {
+    riskLevel = 'urgent';
+    riskScore = 82;
+  } else if (lowerInput.includes('fever') || lowerInput.includes('rash') || lowerInput.includes('breathing') || lowerInput.includes('tight')) {
+    riskLevel = 'moderate';
+    riskScore = 45 + Math.floor(Math.random() * 20);
+  } else {
+    riskLevel = 'low';
+    riskScore = 15 + Math.floor(Math.random() * 20);
+  }
+
+  // Run pipeline
+  runPipeline(riskLevel, riskScore);
+}
+
+function runPipeline(riskLevel, riskScore) {
+  const stages = 7;
+  const statusBar = document.getElementById('pipelineStatus');
+  const startTime = Date.now();
+
+  const stageLabels = [
+    'Receiving patient input...',
+    'Parsing symptom vectors...',
+    'Computing risk classification...',
+    'Loading provincial context layer...',
+    'Querying capacity routing matrix...',
+    'Generating care recommendation...',
+    'Compiling structured intake output...'
+  ];
+
+  const stageCodes = ['INPUT', 'PARSE', 'RISK', 'CONTEXT', 'ROUTE', 'RECOMMEND', 'OUTPUT'];
+
+  // Reset all stages
+  for (let i = 0; i < stages; i++) {
+    const stage = document.getElementById('stage-' + i);
+    stage.classList.remove('active', 'completed');
+  }
+
+  let currentStage = 0;
+
+  const timer = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    document.getElementById('pipelineTime').textContent = formatTime(elapsed);
+  }, 50);
+
+  function activateNextStage() {
+    if (currentStage >= stages) {
+      // Pipeline complete
+      clearInterval(timer);
+      const totalTime = Date.now() - startTime;
+      document.getElementById('pipelineTime').textContent = formatTime(totalTime);
+
+      statusBar.innerHTML = `
+        <span style="color:var(--green);">✓</span>
+        <span>Analysis complete — routing recommendation generated</span>
+        <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+          <span class="mono">MODE: COMPLETE</span>
+          <span class="mono">${formatTime(totalTime)}</span>
+        </div>
+      `;
+
+      // Update risk panel
+      updateRisk(riskLevel, riskScore);
+
+      // Reset button
+      const btn = document.getElementById('analyzeBtn');
+      btn.disabled = false;
+      btn.innerHTML = '◎ &nbsp;Re-Analyze';
+      analysisRunning = false;
+
+      // Scroll to risk panel
+      setTimeout(() => {
+        document.getElementById('risk').scrollIntoView({ behavior: 'smooth' });
+        showToast('✓ Analysis complete — see results below');
+      }, 600);
+
+      return;
+    }
+
+    // Mark previous stage as completed
+    if (currentStage > 0) {
+      document.getElementById('stage-' + (currentStage - 1)).classList.remove('active');
+      document.getElementById('stage-' + (currentStage - 1)).classList.add('completed');
+    }
+
+    // Activate current stage
+    document.getElementById('stage-' + currentStage).classList.add('active');
+
+    statusBar.innerHTML = `
+      <span style="color:var(--gold);">◎</span>
+      <span>${stageLabels[currentStage]}</span>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+        <span class="mono">STAGE: ${stageCodes[currentStage]}</span>
+        <span class="mono" id="pipelineTime">${formatTime(Date.now() - Date.now())}</span>
+      </div>
+    `;
+
+    currentStage++;
+
+    // Variable delay to feel realistic
+    const delays = [400, 600, 800, 700, 650, 500, 450];
+    setTimeout(activateNextStage, delays[currentStage - 1] || 500);
+  }
+
+  activateNextStage();
+}
+
+function formatTime(ms) {
+  const s = Math.floor(ms / 1000);
+  const m = String(ms % 1000).padStart(3, '0');
+  return `${String(s).padStart(2, '0')}:${m.slice(0,2)}.${m.slice(-1)}`;
+}
+
+/* ============================================================
+   SECTION: Update risk panel after analysis
+   ============================================================ */
+function updateRisk(level, score) {
+  const gauge = document.getElementById('riskGauge');
+  const scoreNum = document.getElementById('riskScoreNum');
+  const badge = document.getElementById('riskBadge');
+
+  // Animate score
+  animateCount(scoreNum, 0, score, 800);
+
+  // Update gauge color and state
+  ['rs-green','rs-amber','rs-red'].forEach(id => {
+    const el = document.getElementById(id);
+    el.style.background = '';
+    el.style.borderColor = '';
+  });
+
+  if (level === 'low') {
+    const pct = score / 100 * 360;
+    gauge.style.background = `conic-gradient(var(--green) 0deg, var(--green) ${pct}deg, rgba(255,255,255,0.06) ${pct}deg)`;
+    badge.style.background = 'var(--green-dim)';
+    badge.style.borderColor = 'rgba(46,204,135,0.3)';
+    badge.style.color = 'var(--green)';
+    badge.innerHTML = '◑ &nbsp;Low Risk';
+    document.getElementById('rs-green').style.background = 'rgba(46,204,135,0.06)';
+    document.getElementById('rs-green').style.borderColor = 'rgba(46,204,135,0.4)';
+  } else if (level === 'moderate') {
+    const pct = score / 100 * 360;
+    gauge.style.background = `conic-gradient(var(--amber) 0deg, var(--amber) ${pct}deg, rgba(255,255,255,0.06) ${pct}deg)`;
+    badge.style.background = 'var(--amber-dim)';
+    badge.style.borderColor = 'rgba(240,165,0,0.3)';
+    badge.style.color = 'var(--amber)';
+    badge.innerHTML = '◑ &nbsp;Moderate';
+    document.getElementById('rs-amber').style.background = 'rgba(240,165,0,0.06)';
+    document.getElementById('rs-amber').style.borderColor = 'rgba(240,165,0,0.4)';
+  } else if (level === 'urgent') {
+    const pct = score / 100 * 360;
+    gauge.style.background = `conic-gradient(var(--red) 0deg, var(--red) ${pct}deg, rgba(255,255,255,0.06) ${pct}deg)`;
+    badge.style.background = 'var(--red-dim)';
+    badge.style.borderColor = 'rgba(232,93,93,0.3)';
+    badge.style.color = 'var(--red)';
+    badge.innerHTML = '⚠ &nbsp;Urgent';
+    document.getElementById('rs-red').style.background = 'rgba(232,93,93,0.06)';
+    document.getElementById('rs-red').style.borderColor = 'rgba(232,93,93,0.4)';
+  }
+
+  // Update confidence score
+  const conf = 75 + Math.floor(Math.random() * 20);
+  document.getElementById('confScore').textContent = conf + '%';
+  document.querySelector('.gov-metric-fill').style.width = conf + '%';
+}
+
+function animateCount(el, from, to, duration) {
+  const start = performance.now();
+  function update(time) {
+    const progress = Math.min((time - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(from + (to - from) * eased);
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+/* ============================================================
+   SECTION: Route selection interaction
+   ============================================================ */
+function selectRoute(el) {
+  document.querySelectorAll('.routing-option').forEach(opt => {
+    opt.classList.remove('selected');
+  });
+  el.classList.add('selected');
+}
+
+/* ============================================================
+   SECTION: Toast notifications
+   ============================================================ */
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.innerHTML = `<span class="toast-icon">✓</span>${message}`;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+/* ============================================================
+   SECTION: Intersection Observer for fade-in animations
+   ============================================================ */
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+/* ============================================================
+   SECTION: Live timestamp update
+   ============================================================ */
+function updateTimestamp() {
+  const now = new Date();
+  const ts = now.toLocaleDateString('en-CA') + ' · ' +
+    now.toLocaleTimeString('en-CA', { hour12: false, timeZone: 'America/Halifax' }) + ' AST';
+  const el = document.getElementById('summaryTimestamp');
+  if (el) el.textContent = ts;
+}
+updateTimestamp();
+setInterval(updateTimestamp, 1000);
+
+/* ============================================================
+   SECTION: Animated KPI counters on scroll
+   ============================================================ */
+const kpiObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      animateKPIs();
+      kpiObserver.disconnect();
+    }
+  });
+}, { threshold: 0.3 });
+
+const dashSection = document.getElementById('dashboard');
+if (dashSection) kpiObserver.observe(dashSection);
+
+function animateKPIs() {
+  // These are display-only animations
+  const kpiEl1 = document.getElementById('kpi1');
+  const kpiEl3 = document.getElementById('kpi3');
+  const kpiEl4 = document.getElementById('kpi4');
+
+  animateCountFloat(kpiEl1, 0, 38, 1200, '%');
+  animateCountFloat(kpiEl3, 0, 61, 1400, '%');
+  animateCountInt(kpiEl4, 0, 2847, 1600, '');
+}
+
+function animateCountFloat(el, from, to, duration, suffix) {
+  const start = performance.now();
+  function update(time) {
+    const progress = Math.min((time - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(from + (to - from) * eased) + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+function animateCountInt(el, from, to, duration, suffix) {
+  const start = performance.now();
+  function update(time) {
+    const progress = Math.min((time - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(from + (to - from) * eased).toLocaleString() + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+</script>
+</body>
+</html>
