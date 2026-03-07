@@ -1,0 +1,153 @@
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background: #0f172a;
+    color: #e2e8f0;
+}
+#app-header {
+    background: #1e293b;
+    padding: 1.5rem;
+    border-bottom: 2px solid #334155;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.header-inner {
+    max-width: 1200px; margin: 0 auto; width: 100%; display: flex; justify-content: space-between;
+}
+.logo-group {
+    display: flex; align-items: center; gap: 1rem;
+}
+.logo-icon svg { width: 36px; height: 36px; }
+.logo-text { font-size: 1.5rem; margin: 0; }
+.logo-accent { color: #0ea5e9; }
+.view-badge { background: #0ea5e9; color: black; font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; }
+.patient-link { color: #38bdf8; text-decoration: none; font-size: 0.9rem; }
+.tagline { margin: 0; margin-top: 0.25rem; font-size: 0.85rem; color: #94a3b8; }
+#pipeline {
+    padding: 2rem; background: #0f172a; display: flex; justify-content: center;
+}
+.pipeline-track { display: flex; align-items: center; gap: 0.5rem; }
+.pipeline-stage { text-align: center; color: #64748b; }
+.pipeline-stage.active { color: #38bdf8; font-weight: bold; }
+.stage-dot {
+    width: 32px; height: 32px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem;
+}
+.pipeline-stage.active .stage-dot { background: #0ea5e9; color: white; }
+.stage-label { font-size: 0.75rem; line-height: 1.2; }
+.stage-connector { width: 40px; height: 2px; background: #334155; margin-bottom: 1.5rem; }
+.stage-connector.filled { background: #38bdf8; }
+
+#app-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 2rem;
+}
+.panel {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #334155;
+}
+.panel-title { font-size: 1.25rem; font-weight: 600; margin-top: 0; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; }
+.panel-icon { width: 24px; height: 24px; color: #38bdf8; }
+
+.demo-btn {
+    display: block; width: 100%; border: 1px solid #334155; background: #0f172a; color: #e2e8f0; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem; cursor: pointer; text-align: left;
+}
+.demo-btn:hover { border-color: #38bdf8; }
+.demo-label { font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 600; }
+
+.form-group { margin-bottom: 1.5rem; }
+.form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;}
+.form-group textarea, .form-group select, .form-group input {
+    width: 100%; box-sizing: border-box; padding: 0.75rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; font-family: inherit;
+}
+.btn-submit { background: #0ea5e9; color: white; padding: 1rem; border: none; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+.btn-submit:disabled { background: #475569; cursor: not-allowed; }
+
+.opor-toggle { margin-bottom: 1.5rem; padding: 1rem; border: 1px dashed #334155; border-radius: 8px; }
+.opor-toggle summary { cursor: pointer; color: #94a3b8; font-weight: 600; }
+
+.results-placeholder { text-align: center; color: #64748b; padding: 4rem; }
+.results-placeholder svg { width: 64px; height: 64px; margin-bottom: 1rem; }
+
+.risk-banner {
+    background: #1e293b; border: 1px solid #334155; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;
+}
+.risk-badge { background: #b91c1c; color: white; font-weight: bold; padding: 0.5rem 1rem; border-radius: 4px; }
+.risk-banner[data-level="low"] .risk-badge { background: #15803d; }
+.risk-banner[data-level="moderate"] .risk-badge { background: #b45309; }
+.risk-bar-wrap { flex: 1; height: 8px; background: #0f172a; border-radius: 4px; overflow: hidden; }
+.risk-bar { height: 100%; background: #ef4444; width: 0; transition: width 0.5s; }
+.risk-banner[data-level="low"] .risk-bar { background: #22c55e; }
+.risk-banner[data-level="moderate"] .risk-bar { background: #f59e0b; }
+
+.cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.result-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+.result-card h3 { font-size: 0.95rem; margin: 0 0 1rem 0; color: #94a3b8; display: flex; align-items: center; gap: 0.5rem; }
+.card-body p { margin: 0.25rem 0; font-size: 0.9rem; line-height: 1.4; }
+.card-icon { font-size: 1.1rem; }
+
+.option-tag { display: inline-block; background: #1e293b; border: 1px solid #334155; padding: 2px 6px; border-radius: 4px; margin-right: 4px; font-size: 0.8rem; }
+.pathway-pill { display: inline-block; background: #0ea5e9; color: white; padding: 4px 12px; border-radius: 999px; font-weight: 600; font-size: 0.9rem; }
+.pathway-pill.emergency { background: #ef4444; }
+.pathway-pill.mental { background: #8b5cf6; }
+
+.cap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.cap-item { background: #1e293b; padding: 0.5rem; border-radius: 4px; display: flex; justify-content: space-between; font-size: 0.85rem; }
+.cap-label { color: #94a3b8; }
+.cap-value { font-weight: 600; }
+
+.audit-list { margin: 0; padding-left: 1.2rem; font-size: 0.8rem; color: #cbd5e1; }
+.session-id { margin-top: 2rem; text-align: center; color: #475569; font-family: monospace; font-size: 0.85rem; }
+
+#app-footer { text-align: center; padding: 2rem; color: #64748b; font-size: 0.85rem; border-top: 1px solid #334155; margin-top: 2rem; }
+
+/* Patient Care Requests */
+.requests-panel {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #334155;
+}
+.requests-panel h3 {
+    font-size: 0.95rem;
+    margin: 0 0 1rem 0;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.requests-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.request-item {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 0.9rem;
+}
+.request-meta {
+    color: #0ea5e9;
+    margin-bottom: 0.25rem;
+}
+.request-session {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+.request-summary {
+    margin-top: 0.5rem;
+    color: #cbd5e1;
+    font-size: 0.85rem;
+}
+.requests-empty {
+    color: #64748b;
+    font-style: italic;
+}

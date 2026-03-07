@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KLARA OS — Clinician Dashboard</title>
+    <meta name="description" content="KLARA OS: Clinician/admin dashboard with full pipeline visibility.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/admin.css">
+</head>
+
+<body>
+
+    <!-- ═══════════ Background animated blobs ═══════════ -->
+    <div class="bg-blobs" aria-hidden="true">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- ═══════════ HEADER ═══════════ -->
+    <header id="app-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <div class="logo-group">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect rx="8" width="36" height="36" fill="url(#logo-grad)" />
+                            <path d="M11 18h14M18 11v14" stroke="#fff" stroke-width="2.5" stroke-linecap="round" />
+                            <defs>
+                                <linearGradient id="logo-grad" x1="0" y1="0" x2="36" y2="36">
+                                    <stop stop-color="#00d4aa" />
+                                    <stop offset="1" stop-color="#0ea5e9" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <h1 class="logo-text">KLARA<span class="logo-accent">OS</span></h1>
+                    <span class="view-badge">CLINICIAN</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <a href="/" class="patient-link">← Patient View</a>
+                <p class="tagline">AI-Powered Healthcare Navigation</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══════════ PIPELINE VISUALIZATION ═══════════ -->
+    <section id="pipeline" aria-label="Processing Pipeline">
+        <div class="pipeline-track">
+            <div class="pipeline-stage" data-stage="1">
+                <div class="stage-dot"><span>1</span></div>
+                <p class="stage-label">Patient<br>Input</p>
+            </div>
+            <div class="stage-connector"></div>
+            <div class="pipeline-stage" data-stage="2">
+                <div class="stage-dot"><span>2</span></div>
+                <p class="stage-label">Symptom<br>Parsing</p>
+            </div>
+            <div class="stage-connector"></div>
+            <div class="pipeline-stage" data-stage="3">
+                <div class="stage-dot"><span>3</span></div>
+                <p class="stage-label">Risk<br>Classification</p>
+            </div>
+            <div class="stage-connector"></div>
+            <div class="pipeline-stage" data-stage="4">
+                <div class="stage-dot"><span>4</span></div>
+                <p class="stage-label">Provincial<br>Context</p>
+            </div>
+            <div class="stage-connector"></div>
+            <div class="pipeline-stage" data-stage="5">
+                <div class="stage-dot"><span>5</span></div>
+                <p class="stage-label">Capacity<br>Routing</p>
+            </div>
+            <div class="stage-connector"></div>
+            <div class="pipeline-stage" data-stage="6">
+                <div class="stage-dot"><span>6</span></div>
+                <p class="stage-label">Care<br>Recommend</p>
+            </div>
+            <div class="stage-connector"></div>
+            <div class="pipeline-stage" data-stage="7">
+                <div class="stage-dot"><span>7</span></div>
+                <p class="stage-label">Structured<br>Output</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════ MAIN CONTENT ═══════════ -->
+    <main id="app-main">
+
+        <!-- ─── LEFT: Intake Form ─── -->
+        <section class="panel intake-panel" id="intake-panel">
+            <h2 class="panel-title">
+                <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                    <rect x="8" y="2" width="8" height="4" rx="1" />
+                </svg>
+                Patient Intake
+            </h2>
+
+            <div class="demo-scenarios">
+                <p class="demo-label">Quick Demo Scenarios</p>
+                <div class="demo-buttons">
+                    <button type="button" class="demo-btn demo-emergency"
+                        data-text="I've been having severe chest pain and difficulty breathing for about an hour now. The pain is radiating to my left arm."
+                        data-region="Halifax">
+                        🚨 Chest Pain Emergency
+                    </button>
+                    <button type="button" class="demo-btn demo-moderate"
+                        data-text="I've had a persistent fever of 39°C for two days, with body aches and a bad cough. I can't keep any food down."
+                        data-region="Cape Breton">
+                        ⚠️ Persistent Fever
+                    </button>
+                    <button type="button" class="demo-btn demo-low"
+                        data-text="I've had a mild headache on and off for a couple of days. Over-the-counter painkillers help a bit."
+                        data-region="Annapolis Valley">
+                        💊 Mild Headache
+                    </button>
+                    <button type="button" class="demo-btn demo-mental"
+                        data-text="I've been feeling very anxious and overwhelmed for the past few weeks. I'm having trouble sleeping and feel hopeless most days."
+                        data-region="Halifax">
+                        🧠 Mental Health
+                    </button>
+                </div>
+            </div>
+
+            <form id="intake-form" autocomplete="off">
+                <div class="form-group">
+                    <label for="symptom-input">Describe symptoms</label>
+                    <textarea id="symptom-input" rows="4"
+                        placeholder="e.g. &quot;I've had a headache and fever for two days…&quot;" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="region-select">Region</label>
+                    <select id="region-select" required>
+                        <option value="" disabled selected>Select region…</option>
+                        <option value="Halifax">Halifax</option>
+                        <option value="Cape Breton">Cape Breton</option>
+                        <option value="South Shore">South Shore</option>
+                        <option value="Annapolis Valley">Annapolis Valley</option>
+                        <option value="Truro / Colchester">Truro / Colchester</option>
+                        <option value="Northern (Rural)">Northern (Rural)</option>
+                    </select>
+                </div>
+
+                <!-- Optional OPOR toggle -->
+                <details class="opor-toggle">
+                    <summary>OPOR Health Record <span class="badge">Optional</span></summary>
+                    <div class="opor-fields">
+                        <div class="form-group">
+                            <label for="opor-conditions">Active conditions</label>
+                            <input type="text" id="opor-conditions" placeholder="e.g. Diabetes, Hypertension">
+                        </div>
+                        <div class="form-group">
+                            <label for="opor-meds">Current medications</label>
+                            <input type="text" id="opor-meds" placeholder="e.g. Metformin, Lisinopril">
+                        </div>
+                        <div class="form-group">
+                            <label for="opor-ed-visits">Prior ED visits (12 months)</label>
+                            <input type="number" id="opor-ed-visits" min="0" value="0">
+                        </div>
+                    </div>
+                </details>
+
+                <button type="submit" id="submit-btn" class="btn-submit">
+                    <span class="btn-label">Assess Patient</span>
+                    <span class="btn-loader" hidden>
+                        <span class="spinner"></span> Processing…
+                    </span>
+                </button>
+            </form>
+        </section>
+
+        <!-- ─── RIGHT: Results Dashboard ─── -->
+        <section class="panel results-panel" id="results-panel">
+            <!-- placeholder shown before first submission -->
+            <div class="results-placeholder" id="results-placeholder">
+                <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".25">
+                    <circle cx="40" cy="40" r="30" />
+                    <path d="M40 25v15l10 10" />
+                </svg>
+                <p>Submit a patient intake or click a demo scenario to see results here.</p>
+            </div>
+
+            <!-- actual results (hidden until first response) -->
+            <div class="results-content" id="results-content" hidden>
+
+                <!-- Risk banner -->
+                <div class="risk-banner" id="risk-banner">
+                    <div class="risk-banner-inner">
+                        <div class="risk-badge" id="risk-badge">LOW</div>
+                        <div class="risk-info">
+                            <p class="risk-title">Risk Assessment</p>
+                            <p class="risk-subtitle" id="risk-subtitle">Score: --</p>
+                        </div>
+                    </div>
+                    <div class="risk-bar-wrap">
+                        <div class="risk-bar" id="risk-bar"></div>
+                    </div>
+                </div>
+
+                <!-- Cards grid -->
+                <div class="cards-grid">
+                    <div class="result-card card-patient" id="card-patient">
+                        <h3><span class="card-icon">📝</span> Patient Input</h3>
+                        <div class="card-body" id="card-patient-body"></div>
+                    </div>
+                    <div class="result-card card-routing" id="card-routing">
+                        <h3><span class="card-icon">🧭</span> Routing Recommendation</h3>
+                        <div class="card-body" id="card-routing-body"></div>
+                    </div>
+                    <div class="result-card card-context" id="card-context">
+                        <h3><span class="card-icon">🏥</span> Provincial Context</h3>
+                        <div class="card-body" id="card-context-body"></div>
+                    </div>
+                    <div class="result-card card-summary" id="card-summary">
+                        <h3><span class="card-icon">📋</span> Clinician Summary</h3>
+                        <div class="card-body" id="card-summary-body"></div>
+                    </div>
+                    <div class="result-card card-flags" id="card-flags" hidden>
+                        <h3><span class="card-icon">🚨</span> Emergency Flags</h3>
+                        <div class="card-body" id="card-flags-body"></div>
+                    </div>
+                    <div class="result-card card-governance" id="card-governance">
+                        <h3><span class="card-icon">🔒</span> Governance &amp; Audit</h3>
+                        <div class="card-body" id="card-governance-body"></div>
+                    </div>
+                </div>
+
+                <p class="session-id" id="session-id"></p>
+            </div>
+
+            <!-- ─── Patient Care Requests (always visible) ─── -->
+            <div class="requests-panel" id="requests-panel">
+                <h3><span class="card-icon">📬</span> Patient Care Requests</h3>
+                <div id="requests-list" class="requests-list">Loading…</div>
+            </div>
+        </section>
+    </main>
+
+    <footer id="app-footer">
+        <p>KLARA OS v1.1 &mdash; CGI DataJam 2026 &mdash; Clinician Dashboard</p>
+    </footer>
+
+    <script src="/static/admin.js"></script>
+</body>
+
+</html>
