@@ -245,4 +245,33 @@
     function sleep(ms) {
         return new Promise(r => setTimeout(r, ms));
     }
+
+    // ── Patient Care Requests ──
+    const requestsList = document.getElementById('requests-list');
+
+    async function loadRequests() {
+        try {
+            const res = await fetch('/api/requests');
+            const data = await res.json();
+            const reqs = data.requests || [];
+            if (reqs.length === 0) {
+                requestsList.innerHTML = '<p class="requests-empty">No requests yet. Patients submit from the results screen.</p>';
+            } else {
+                requestsList.innerHTML = reqs.map(r => `
+                    <div class="request-item">
+                        <div class="request-meta">
+                            <strong>${esc(r.pathway)}</strong> · ${new Date(r.timestamp).toLocaleString()}
+                        </div>
+                        <div class="request-session">Session: ${esc(r.session_id || '—')}</div>
+                        ${r.observable_summary ? `<div class="request-summary">${esc(r.observable_summary)}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+        } catch (e) {
+            requestsList.innerHTML = '<p class="requests-empty">Could not load requests.</p>';
+        }
+    }
+
+    loadRequests();
+    setInterval(loadRequests, 10000);
 })();

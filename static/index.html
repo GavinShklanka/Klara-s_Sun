@@ -4,34 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KLARA OS — How Can We Help You Today?</title>
-    <meta name="description"
-        content="KLARA OS: Tell us your symptoms and we'll help you find the right care in Nova Scotia.">
+    <title>KLARA OS — Nova Scotia Healthcare Navigation</title>
+    <meta name="description" content="KLARA OS: Conversational healthcare navigation for Nova Scotians.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/user.css">
 </head>
 
 <body>
-
-    <!-- Background -->
     <div class="bg-glow" aria-hidden="true"></div>
 
     <div class="app-shell">
-
-        <!-- ─── Header ─── -->
-        <header id="user-header" class="animate-up delay-0">
+        <header id="user-header">
             <div class="logo-row">
                 <div class="logo-mark">
                     <svg viewBox="0 0 36 36" fill="none">
-                        <rect rx="8" width="36" height="36" fill="url(#lg)" />
-                        <path d="M11 18h14M18 11v14" stroke="#fff" stroke-width="2.5" stroke-linecap="round" />
+                        <rect rx="8" width="36" height="36" fill="url(#lg)"/>
+                        <path d="M11 18h14M18 11v14" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
                         <defs>
                             <linearGradient id="lg" x1="0" y1="0" x2="36" y2="36">
-                                <stop stop-color="#00d4aa" />
-                                <stop offset="1" stop-color="#0ea5e9" />
+                                <stop stop-color="#00d4aa"/><stop offset="1" stop-color="#0ea5e9"/>
                             </linearGradient>
                         </defs>
                     </svg>
@@ -40,78 +33,107 @@
             </div>
         </header>
 
-        <!-- ─── Main card ─── -->
         <main id="user-main">
-
-            <!-- Welcome state -->
-            <div id="welcome-view" class="view-container">
-                <h2 class="welcome-heading animate-up delay-1">How can we help you today?</h2>
-                <p class="welcome-sub animate-up delay-2">Tell us what you're experiencing and we'll find the right care for you in Nova
-                    Scotia.</p>
-
-                <form id="user-form" autocomplete="off">
-                    <div class="input-wrap animate-up delay-3">
-                        <textarea id="user-input" rows="4"
-                            placeholder="For example: &quot;I've had a headache and fever for two days&quot;"></textarea>
+            <!-- ═══ Chat / Intake View ═══ -->
+            <div id="chat-view" class="view-container">
+                <div class="chat-container">
+                    <div id="chat-messages" class="chat-messages"></div>
+                    <div id="chat-input-area" class="chat-input-area">
+                        <textarea id="chat-input" rows="2" placeholder="Type your message…" disabled></textarea>
+                        <div class="chat-actions">
+                            <button type="button" id="voice-btn" class="btn-voice" title="Voice to text" disabled>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/>
+                                </svg>
+                            </button>
+                            <button type="button" id="send-btn" class="btn-send" disabled>Send</button>
+                        </div>
                     </div>
-
-                    <div class="input-wrap animate-up delay-4">
-                        <select id="region-value" required>
-                            <option value="" disabled selected hidden>Select your region...</option>
-                            <option value="Halifax">Halifax</option>
-                            <option value="Cape Breton">Cape Breton</option>
-                            <option value="South Shore">South Shore</option>
-                            <option value="Annapolis Valley">Annapolis Valley</option>
-                            <option value="Truro / Colchester">Truro / Colchester</option>
-                            <option value="Northern (Rural)">Northern (Rural)</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" id="user-submit" class="btn-go animate-up delay-5" disabled>
-                        <span class="btn-go-label">Find My Care Options</span>
-                        <span class="btn-go-loader" hidden>
-                            <span class="spinner"></span> Checking…
-                        </span>
-                    </button>
-                </form>
+                </div>
             </div>
 
-            <!-- Results state (hidden initially) -->
+            <!-- ═══ Join Modal (health card verification) ═══ -->
+            <div id="join-modal" class="modal view-hidden">
+                <div class="modal-backdrop"></div>
+                <div class="modal-content">
+                    <h3>Join KLARA</h3>
+                    <p>Connect with your MSI health card number to access your record. (Demo: any number works.)</p>
+                    <input type="text" id="health-card-input" placeholder="Health card number" maxlength="12">
+                    <div class="modal-actions">
+                        <button type="button" id="join-cancel" class="btn-secondary">Cancel</button>
+                        <button type="button" id="join-submit" class="btn-primary">Connect</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ Results View ═══ -->
             <div id="results-view" class="view-container view-hidden">
+                <button type="button" id="back-btn" class="btn-back">← Start Over</button>
 
-                <button type="button" id="back-btn" class="btn-back animate-up delay-0">← Start Over</button>
-
-                <div class="result-hero animate-up delay-1" id="result-hero">
-                    <div class="result-emoji" id="result-emoji">🏥</div>
-                    <h2 class="result-heading" id="result-heading">We recommend…</h2>
+                <div class="result-hero" id="result-hero">
+                    <div class="result-emoji">🏥</div>
+                    <h2 class="result-heading">We recommend…</h2>
                     <p class="result-pathway" id="result-pathway"></p>
                 </div>
+                <p class="result-reason" id="result-reason"></p>
 
-                <div class="result-reason animate-up delay-2" id="result-reason"></div>
-
-                <div class="result-options animate-up delay-3" id="result-options">
+                <div class="result-options" id="result-options">
                     <h3>Your Options</h3>
-                    <ul id="options-list"></ul>
+                    <div id="options-list" class="options-list"></div>
                 </div>
 
-                <!-- Emergency banner (hidden unless needed) -->
-                <div class="emergency-banner animate-up delay-4" id="emergency-banner" hidden>
+                <div class="lp-model-panel" id="lp-model-panel">
+                    <button type="button" class="lp-toggle" id="lp-toggle" aria-expanded="false">
+                        <span class="lp-toggle-icon">▸</span>
+                        <span>How your route was chosen — and how you're helping Nova Scotia</span>
+                    </button>
+                    <div class="lp-content" id="lp-content" hidden>
+                        <div class="lp-user-story">
+                            <h4 class="lp-section-title">How your route was determined</h4>
+                            <p class="lp-story-intro">KLARA looked at your symptoms, how urgent they are, how long they have lasted, where you are in the province, and which services are available. From that, it chose one recommended pathway—the option that best balances your safety with current capacity across the system.</p>
+
+                            <h4 class="lp-section-title">Why this helps emergency care</h4>
+                            <p class="lp-story-stat">Emergency departments need to stay available for life-threatening situations. When people with non-urgent needs use other services, it eases pressure on the ED so it can focus on true emergencies. In Nova Scotia, about 35% of emergency department visits are classified as non-emergency. Using the pathway KLARA suggests helps keep emergency care ready for those who need it most.</p>
+
+                            <h4 class="lp-section-title">How you're helping Nova Scotia</h4>
+                            <p class="lp-story-logic">Choosing the recommended pathway helps the system use existing services more effectively. KLARA does not create new demand; it helps direct people to the right place. That means better use of resources, less strain on overcrowded services, and improved access to care for everyone in the province. Your choice supports that.</p>
+                        </div>
+                        <div class="lp-ranking-section">
+                            <p class="lp-ranking-intro">Pathways that were considered for you (best fit first):</p>
+                            <div class="lp-ranking" id="lp-ranking"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-summary" id="result-summary">
+                    <h3>What We Found (Observable Intake)</h3>
+                    <div id="summary-body"></div>
+                    <div id="submit-request-area" class="submit-request-area">
+                        <p class="submit-hint">Pick an option above, then submit your request.</p>
+                        <button type="button" id="submit-request-btn" class="btn-submit-request" disabled>
+                            Submit Request
+                        </button>
+                    </div>
+                </div>
+
+                <div class="emergency-banner" id="emergency-banner" hidden>
                     <span class="emergency-icon">🚨</span>
                     <span id="emergency-text"></span>
                 </div>
 
-                <div class="result-summary animate-up delay-4" id="result-summary">
-                    <h3>What We Found</h3>
-                    <div id="summary-body"></div>
+                <div class="dashboard-view view-hidden" id="dashboard-view">
+                    <h3>Your Care Dashboard</h3>
+                    <div class="dashboard-status" id="dashboard-status"></div>
+                    <div class="dashboard-next-steps" id="dashboard-next-steps"></div>
+                    <div class="dashboard-directions" id="dashboard-directions"></div>
+                    <div class="dashboard-intake-report" id="dashboard-intake-report"></div>
                 </div>
 
-                <p class="disclaimer animate-up delay-5">This is a navigation aid, not a medical diagnosis. If you feel your condition is
-                    life-threatening, please call <strong>911</strong> immediately.</p>
+                <p class="disclaimer">This is a navigation aid, not a medical diagnosis. If you feel your condition is life-threatening, please call <strong>911</strong> immediately.</p>
             </div>
-
         </main>
 
-        <!-- ─── Footer ─── -->
         <footer id="user-footer">
             <a href="/admin" class="admin-link">Clinician / Admin View →</a>
             <p>KLARA OS v1.1 — Nova Scotia Healthcare Navigation</p>

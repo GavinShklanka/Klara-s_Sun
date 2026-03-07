@@ -10,7 +10,7 @@ class PatientInput(BaseModel):
 
 class RiskAssessment(BaseModel):
     score: int = Field(ge=0, le=100)
-    level: str  # e.g., 'low', 'moderate', 'high'
+    level: str  # e.g., 'low', 'moderate', 'urgent', 'emergency'
     emergency_flags: List[str]
 
 
@@ -54,6 +54,50 @@ class RoutingRecommendation(BaseModel):
     options: List[str]
 
 
+class FrontendAlternative(BaseModel):
+    pathway: str
+    reason: str
+
+
+class FrontendConfidence(BaseModel):
+    numeric_score: float
+    rationale: str
+
+
+class FrontendSource(BaseModel):
+    title: str
+    url: str
+    excerpt: str
+
+
+class FrontendOutput(BaseModel):
+    pathway: str
+    navigation_summary: str
+    next_steps_for_patient: List[str]
+    questions_for_clinician: List[str]
+    information_to_prepare: List[str]
+    safety_reminders: List[str]
+    escalation_conditions: str
+    alternative_pathways_to_consider: List[FrontendAlternative]
+    confidence: FrontendConfidence
+    sources: List[FrontendSource]
+
+
+class NavigationContextModel(BaseModel):
+    schema_version: str
+    session_id: str
+    created_at: str
+    updated_at: str
+    intake_summary: dict
+    risk_assessment: dict
+    pathway_eligibility: List[dict]
+    rag_context: List[dict]
+    routing_result: dict
+    response: dict
+    opor_context: Optional[dict] = None
+    metadata: dict
+
+
 class SystemContext(BaseModel):
     region: str
     virtualcare_wait: str
@@ -82,6 +126,14 @@ class AssessRequest(BaseModel):
     text: str
     region: str
     opor_context: Optional[OporContext] = None  # Optional OPOR health record from Layer 3
+    symptom_selections: Optional[List[str]] = None  # From UI dropdown; signals RAG for easy AI interpretation
+
+
+class PathwayUrl(BaseModel):
+    """Real NS service URL for a care pathway."""
+    name: str
+    url: str
+    register_url: Optional[str] = None
 
 
 class AssessResponse(BaseModel):
@@ -94,3 +146,6 @@ class AssessResponse(BaseModel):
     system_context: SystemContext
     structured_summary: StructuredSummary
     governance: Governance
+    frontend_output: Optional[FrontendOutput] = None
+    navigation_context: Optional[NavigationContextModel] = None
+    pathway_urls: Optional[dict] = None  # pathway_id -> PathwayUrl for clickable NS service links
