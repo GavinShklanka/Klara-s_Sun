@@ -20,7 +20,46 @@
 
     const REGIONS = ['Halifax', 'Cape Breton', 'South Shore', 'Annapolis Valley', 'Truro / Colchester', 'Northern (Rural)'];
 
-    // Intake state
+    // Route explanation per pathway (how this option was chosen; no technical jargon for UX)
+    const ROUTE_EXPLANATIONS = {
+        pharmacy: {
+            intro: 'Your symptoms and location were matched to pharmacy capacity. This pathway was selected because it best fits your need while keeping pressure off urgent and emergency care.',
+            howItHelps: 'Using pharmacy for appropriate care helps emergency departments stay available for life-threatening situations. The system chose this as the best fit from your available options.',
+            actionLabel: 'Find a pharmacy near you',
+        },
+        virtualcarens: {
+            intro: 'Your situation was matched to virtual care availability. This pathway was selected so you can get timely care online while freeing in-person capacity for those who need it most.',
+            howItHelps: 'Virtual care reduces strain on physical clinics and emergency departments. The system identified this as the right fit for your needs and current capacity.',
+            actionLabel: 'Go to VirtualCareNS',
+        },
+        community_health: {
+            intro: 'Your needs were matched to community health capacity. The system connects you to a feasible care location based on where services are available and how care is allocated across the province.',
+            howItHelps: 'Community health centres are part of how Nova Scotia balances demand and capacity. Your route was chosen to connect you to the right level of care and ease strain on the emergency pipeline.',
+            actionLabel: 'Find a community health centre near you',
+        },
+        primarycare: {
+            intro: 'Your symptoms and location were matched to primary care capacity. This pathway was selected as the best fit for ongoing or non-urgent care.',
+            howItHelps: 'Using primary care when appropriate helps keep emergency departments for true emergencies. The system chose this option based on your needs and availability.',
+            actionLabel: 'Find a physician or clinic',
+        },
+        urgent: {
+            intro: 'Your situation was matched to urgent treatment capacity. This pathway was selected so you receive timely in-person care without using the emergency department.',
+            howItHelps: 'Urgent treatment centres are designed for conditions that need same-day care but are not life-threatening. This choice helps keep the ED ready for critical cases.',
+            actionLabel: 'Find an urgent treatment centre',
+        },
+        '811': {
+            intro: 'Your situation was identified as needing nurse triage. This pathway connects you to 811 so a clinician can direct you to the right level of care.',
+            howItHelps: '811 ensures that only those who truly need emergency care are directed there. The system routes you here for your safety and to support the broader care pipeline.',
+            actionLabel: 'Call or visit 811 Nova Scotia',
+        },
+        mental_health: {
+            intro: 'Your needs were matched to mental health and addictions services. This pathway was selected to connect you with the right supports.',
+            howItHelps: 'Dedicated mental health pathways help you get appropriate care and reduce pressure on general emergency and urgent services.',
+            actionLabel: 'Mental health and addictions services',
+        },
+    };
+
+    // Intake state (connection = additive for UX transparency; does not affect routing/compliance)
     let state = {
         step: 'greeting',
         inSystem: null,
@@ -29,6 +68,7 @@
         sessionId: null,
         assessData: null,
         chosenPathway: null,
+        connection: { locationPermission: 'unknown' },  // granted | denied | prompt | unknown
     };
 
     // ── Conversation script (Klara-inspired: calm, observant, precise, professional) ──
@@ -61,6 +101,51 @@
 
     function setStep(step) {
         state.step = step;
+    }
+
+    // ── Connection Status Indicator (identity + location awareness; non-destructive) ──
+    function checkLocationPermission() {
+        if (typeof navigator === 'undefined' || !navigator.permissions || !navigator.permissions.query)
+            return Promise.resolve('unknown');
+        try {
+            return navigator.permissions.query({ name: 'geolocation' })
+                .then(function (result) { return result.state; })
+                .catch(function () { return 'unknown'; });
+        } catch (_) {
+            return Promise.resolve('unknown');
+        }
+    }
+
+    function updateConnectionStatus() {
+        const authEl = document.getElementById('connection-status-auth');
+        const locEl = document.getElementById('connection-status-location');
+        if (!authEl || !locEl) return;
+        const connected = state.inSystem === true;
+        if (!connected) {
+            authEl.textContent = '\uD83D\uDD12 Not signed in';
+            authEl.className = 'status-item status-connection connection-status-disconnected';
+            locEl.textContent = '';
+            locEl.setAttribute('aria-hidden', 'true');
+            return;
+        }
+        authEl.textContent = '\uD83D\uDFE2 Connected';
+        authEl.className = 'status-item status-connection connection-status-connected';
+        var perm = state.connection.locationPermission || 'unknown';
+        if (perm === 'granted') {
+            locEl.textContent = '\uD83D\uCCCD Location enabled';
+            locEl.setAttribute('aria-hidden', 'false');
+        } else {
+            locEl.textContent = '\uD83D\uCCCD\uD83D\uDEAB Location disabled';
+            locEl.setAttribute('aria-hidden', 'false');
+        }
+    }
+
+    function refreshConnectionStatusAfterSignIn() {
+        checkLocationPermission().then(function (permission) {
+            state.connection = state.connection || {};
+            state.connection.locationPermission = permission;
+            updateConnectionStatus();
+        });
     }
 
     function enableInput() {
@@ -165,6 +250,7 @@
         appendBubble('user', text);
         if (t === 'yes' || t === 'y') {
             state.inSystem = true;
+            refreshConnectionStatusAfterSignIn();
             appendBubble('klara', SCRIPT.afterJoin.text);
             setStep('symptom_select');
             showSymptomDropdown();
@@ -186,8 +272,9 @@
     function handleJoined() {
         hideJoinModal();
         appendBubble('klara', "You are connected.");
-        appendBubble('klara', SCRIPT.afterJoin.text);
         state.inSystem = true;
+        refreshConnectionStatusAfterSignIn();
+        appendBubble('klara', SCRIPT.afterJoin.text);
         setStep('symptom_select');
         showSymptomDropdown();
     }
@@ -339,26 +426,31 @@
         const optionsList = document.getElementById('options-list');
         optionsList.innerHTML = '';
         const pathwayUrls = data.pathway_urls || {};
+        const locDisplay = safeLocationDisplay();
         for (const opt of data.routing_recommendation.options) {
             const info = pathwayUrls[opt] || { name: opt, url: '#' };
+            const explain = ROUTE_EXPLANATIONS[opt] || {
+                intro: 'This pathway was selected based on your symptoms, location, and current capacity across the system.',
+                howItHelps: 'Choosing the right level of care helps keep emergency services available for those who need them most.',
+                actionLabel: 'Learn more',
+            };
             const wrap = document.createElement('div');
             wrap.className = 'option-card-wrap';
-            const a = document.createElement('a');
-            a.href = info.url || '#';
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
-            a.className = 'option-link';
-            a.dataset.pathway = opt;
-            a.innerHTML = `<span class="option-arrow">→</span> ${esc(info.name || opt)}`;
-            a.addEventListener('click', (e) => {
-                e.preventDefault();
-                state.chosenPathway = opt;
-                document.querySelectorAll('.option-link').forEach(el => el.classList.remove('selected'));
-                a.classList.add('selected');
-                submitRequestBtn.disabled = false;
+            wrap.dataset.pathway = opt;
+
+            const head = document.createElement('div');
+            head.className = 'option-card-head';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'option-link option-link-btn';
+            btn.innerHTML = '<span class="option-arrow">▸</span> ' + esc(info.name || opt);
+            btn.title = 'See how this route was chosen';
+            btn.addEventListener('click', function () {
+                const open = wrap.classList.contains('option-card-expanded');
+                document.querySelectorAll('.option-card-wrap').forEach(function (c) { c.classList.remove('option-card-expanded'); });
+                if (!open) wrap.classList.add('option-card-expanded');
             });
-            wrap.appendChild(a);
-            const locDisplay = safeLocationDisplay();
+            head.appendChild(btn);
             const gisUrlFallback = buildMapsSearchUrl(opt, locDisplay);
             const dirs = document.createElement('a');
             dirs.href = gisUrlFallback;
@@ -367,16 +459,41 @@
             dirs.title = 'Open map: find locations near you (real-time)';
             dirs.target = '_blank';
             dirs.rel = 'noopener noreferrer';
-            dirs.addEventListener('click', (e) => {
+            dirs.addEventListener('click', function (e) { e.stopPropagation(); });
+            head.appendChild(dirs);
+            wrap.appendChild(head);
+
+            const body = document.createElement('div');
+            body.className = 'option-card-body';
+            body.innerHTML =
+                '<p class="option-route-intro">' + esc(explain.intro) + '</p>' +
+                '<p class="option-route-helps">' + esc(explain.howItHelps) + '</p>' +
+                '<div class="option-card-actions"></div>';
+            var actionUrl = gisUrlFallback;
+            if (opt === 'virtualcarens' && info.url && info.url !== '#') actionUrl = info.url;
+            else if (opt === 'pharmacy' || opt === 'community_health') actionUrl = gisUrlFallback;
+            else if (info.url && info.url !== '#') actionUrl = info.url;
+            const actionLink = document.createElement('a');
+            actionLink.href = actionUrl;
+            actionLink.target = '_blank';
+            actionLink.rel = 'noopener noreferrer';
+            actionLink.className = 'btn-option-primary';
+            actionLink.textContent = explain.actionLabel;
+            body.querySelector('.option-card-actions').appendChild(actionLink);
+            const chooseBtn = document.createElement('button');
+            chooseBtn.type = 'button';
+            chooseBtn.className = 'btn-option-choose';
+            chooseBtn.textContent = 'Choose this option';
+            chooseBtn.addEventListener('click', function (e) {
                 e.preventDefault();
-                const u = `/api/nearby?pathway=${encodeURIComponent(opt)}&region=${encodeURIComponent(state.intake.region || '')}&town=${encodeURIComponent(state.intake.town || '')}`;
-                fetch(u).then(r => r.json()).then(d => {
-                    window.open(d.maps_search_url || gisUrlFallback, '_blank', 'noopener,noreferrer');
-                }).catch(function () {
-                    window.open(gisUrlFallback, '_blank', 'noopener,noreferrer');
-                });
+                state.chosenPathway = opt;
+                document.querySelectorAll('.option-link-btn').forEach(function (el) { el.classList.remove('selected'); });
+                btn.classList.add('selected');
+                submitRequestBtn.disabled = false;
             });
-            wrap.appendChild(dirs);
+            body.querySelector('.option-card-actions').appendChild(chooseBtn);
+            wrap.appendChild(body);
+
             optionsList.appendChild(wrap);
         }
 
@@ -414,9 +531,15 @@
         }
 
         document.getElementById('dashboard-view').classList.add('view-hidden');
+        var lpPanel = document.getElementById('lp-model-panel');
+        if (lpPanel) lpPanel.classList.add('view-hidden');
         document.getElementById('lp-content').hidden = true;
-        document.getElementById('lp-toggle').setAttribute('aria-expanded', 'false');
-        document.getElementById('lp-toggle').querySelector('.lp-toggle-icon').textContent = '▸';
+        var lpToggle = document.getElementById('lp-toggle');
+        if (lpToggle) {
+            lpToggle.setAttribute('aria-expanded', 'false');
+            var icon = lpToggle.querySelector('.lp-toggle-icon');
+            if (icon) icon.textContent = '▸';
+        }
         submitRequestBtn.disabled = true;
         submitRequestBtn.textContent = 'Submit Request';
         state.chosenPathway = null;
@@ -632,5 +755,31 @@
 
     initVoice();
     initLPToggle();
+    updateConnectionStatus();
     startChat();
+
+    // ── Capability dropdown (UI only; status indicators, no config) ──
+    (function () {
+        var toggle = document.getElementById('capabilities-toggle');
+        var panel = document.getElementById('capability-dropdown');
+        if (!toggle || !panel) return;
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var open = !panel.hidden;
+            panel.hidden = !open;
+            toggle.setAttribute('aria-expanded', String(open));
+        });
+        document.addEventListener('click', function () {
+            panel.hidden = true;
+            toggle.setAttribute('aria-expanded', 'false');
+        });
+    })();
+
+    // ── Accessibility buttons (placeholder; do not affect intake/routing) ──
+    (function () {
+        var aslBtn = document.getElementById('asl-btn');
+        var brailleBtn = document.getElementById('braille-btn');
+        if (aslBtn) aslBtn.addEventListener('click', function () { console.log('ASL mode activated (experimental)'); });
+        if (brailleBtn) brailleBtn.addEventListener('click', function () { console.log('Braille haptic mode activated (experimental)'); });
+    })();
 })();

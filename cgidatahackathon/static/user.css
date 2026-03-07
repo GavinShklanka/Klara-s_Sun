@@ -69,6 +69,103 @@ body {
     color: #0ea5e9;
 }
 
+/* System Status Bar — below header, above conversation (UI layer only) */
+.system-status-bar {
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #334155;
+}
+.system-status-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: #94a3b8;
+}
+.status-item {
+    font-weight: 500;
+}
+.status-item.status-connection.connection-status-connected {
+    color: #34d399;
+}
+.status-item.status-connection.connection-status-disconnected {
+    color: #94a3b8;
+}
+.status-item.status-location {
+    color: #64748b;
+    font-size: 0.75rem;
+}
+.status-capabilities-wrap {
+    position: relative;
+    margin-left: auto;
+}
+.btn-capabilities {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.6rem;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    background: transparent;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, color 0.15s;
+}
+.btn-capabilities:hover {
+    background: #334155;
+    color: #e2e8f0;
+}
+.capability-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.35rem;
+    min-width: 260px;
+    padding: 0.5rem 0;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+    z-index: 100;
+}
+.capability-dropdown-header {
+    padding: 0.4rem 0.75rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    border-bottom: 1px solid #334155;
+}
+.capability-item {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    color: #e2e8f0;
+    border-bottom: 1px solid #334155;
+}
+.capability-item:last-child {
+    border-bottom: none;
+}
+.capability-icon {
+    margin-right: 0.35rem;
+}
+.capability-status {
+    display: block;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin-top: 0.15rem;
+}
+.capability-note {
+    display: block;
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-top: 0.2rem;
+}
+
 .welcome-heading {
     margin-top: 0;
     font-size: 1.75rem;
@@ -390,19 +487,87 @@ body {
 }
 .lp-objective { display: block; margin-top: 0.25rem; }
 
-/* Option cards with Get directions */
+/* Option cards: click to expand route explanation, then choose or follow link */
 .option-card-wrap {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+}
+.option-card-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    background: #0f172a;
-    border: 1px solid #334155;
     padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
 }
-.option-card-wrap .option-link { flex: 1; }
+.option-link-btn {
+    flex: 1;
+    text-align: left;
+    background: none;
+    border: none;
+    color: #0ea5e9;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0.25rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: color 0.15s;
+}
+.option-link-btn:hover { color: #38bdf8; }
+.option-link-btn.selected { color: #34d399; }
+.option-link-btn .option-arrow { transition: transform 0.2s; }
+.option-card-wrap.option-card-expanded .option-link-btn .option-arrow { transform: rotate(90deg); }
+.option-card-body {
+    display: none;
+    padding: 0 1rem 1rem 1rem;
+    border-top: 1px solid #334155;
+    margin-top: -1px;
+    padding-top: 1rem;
+}
+.option-card-wrap.option-card-expanded .option-card-body { display: block; }
+.option-route-intro, .option-route-helps {
+    font-size: 0.9rem;
+    color: #e2e8f0;
+    line-height: 1.5;
+    margin: 0 0 0.75rem 0;
+}
+.option-route-helps { color: #94a3b8; font-size: 0.85rem; }
+.option-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.75rem;
+}
+.btn-option-primary {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.btn-option-primary:hover { opacity: 0.9; }
+.btn-option-choose {
+    padding: 0.5rem 1rem;
+    background: #334155;
+    color: #e2e8f0;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+.btn-option-choose:hover { background: #475569; }
 .option-directions {
     font-size: 0.85rem;
     color: #0ea5e9;
@@ -624,6 +789,7 @@ body {
 .chat-actions {
     display: flex;
     align-items: center;
+    gap: 0.5rem;
     justify-content: flex-end;
     gap: 0.75rem;
 }
@@ -660,6 +826,22 @@ body {
 .btn-voice svg {
     width: 22px;
     height: 22px;
+}
+
+.btn-accessibility {
+    background: #334155;
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: #94a3b8;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s, color 0.2s;
+}
+.btn-accessibility:hover {
+    background: #475569;
+    color: #0ea5e9;
 }
 
 .btn-send {

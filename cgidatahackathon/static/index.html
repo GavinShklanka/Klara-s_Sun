@@ -33,6 +33,27 @@
             </div>
         </header>
 
+        <!-- System Status Bar: connection + location + capabilities (UI layer only; does not affect intake/routing) -->
+        <div id="system-status-bar" class="system-status-bar" aria-label="System status and capabilities">
+            <div class="system-status-row">
+                <span class="status-item status-connection" id="connection-status-auth">🔒 Not signed in</span>
+                <span class="status-item status-location" id="connection-status-location"></span>
+                <div class="status-item status-capabilities-wrap">
+                    <button type="button" id="capabilities-toggle" class="btn-capabilities" title="Capabilities" aria-haspopup="true" aria-expanded="false">
+                        <span aria-hidden="true">⚙</span> Capabilities
+                    </button>
+                    <div id="capability-dropdown" class="capability-dropdown" hidden aria-label="Capability statuses">
+                        <div class="capability-dropdown-header">Capabilities</div>
+                        <div class="capability-item"><span class="capability-icon">📍</span> Location Routing <span class="capability-status">Status: Disabled</span><br><span class="capability-note">User privacy settings prevent automatic detection.</span></div>
+                        <div class="capability-item"><span class="capability-icon">🤟</span> ASL Video Mode <span class="capability-status">Status: Experimental</span></div>
+                        <div class="capability-item"><span class="capability-icon">⠿</span> Braille Haptic Mode <span class="capability-status">Status: Experimental</span></div>
+                        <div class="capability-item"><span class="capability-icon">🧬</span> Health Data Integration <span class="capability-status">Status: Not Connected</span></div>
+                        <div class="capability-item"><span class="capability-icon">🔐</span> Encrypted Personal Device Profile <span class="capability-status">Status: Offline</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <main id="user-main">
             <!-- ═══ Chat / Intake View ═══ -->
             <div id="chat-view" class="view-container">
@@ -47,6 +68,8 @@
                                     <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/>
                                 </svg>
                             </button>
+                            <button type="button" id="asl-btn" class="btn-accessibility" title="ASL Video (experimental)">🤟 ASL</button>
+                            <button type="button" id="braille-btn" class="btn-accessibility" title="Braille haptic (experimental)">⠿ Braille</button>
                             <button type="button" id="send-btn" class="btn-send" disabled>Send</button>
                         </div>
                     </div>
