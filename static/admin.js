@@ -173,11 +173,20 @@
         `;
 
         // Routing Card
-        const pillClass = level === 'high' ? 'emergency' : (level === 'mental_health' ? 'mental' : '');
+        const pillClass = (level === 'emergency' || level === 'high') ? 'emergency' : (level === 'mental_health' ? 'mental' : '');
+        let emergencyContactBtn = '';
+        if (level === 'emergency' || level === 'high') {
+            emergencyContactBtn = `
+            <button type="button" class="btn-emergency-contact" onclick="openEmergencyContactModal()">
+                📞 Emergency Contact Patient
+            </button>`;
+        }
+
         cardRouting.innerHTML = `
             <div class="pathway-pill ${pillClass}">${esc(data.routing_recommendation.primary_pathway)}</div>
             <p style="margin:.4rem 0">${esc(data.routing_recommendation.reason)}</p>
             <div>${data.routing_recommendation.options.map(o => `<span class="option-tag">${esc(o)}</span>`).join(' ')}</div>
+            ${emergencyContactBtn}
         `;
 
         // Provincial Context Card
@@ -209,8 +218,15 @@
         `;
 
         // Governance Card
+        const optData = data.navigation_context?.routing_result?.optimizer || data.optimizer || {};
+        const zValue = optData.objective_value;
+        const zDisplay = zValue != null ? zValue.toFixed(2) : 'N/A';
+
         cardGov.innerHTML = `
-            <p style="margin-bottom:.5rem"><strong>Confidence:</strong> ${(data.governance.confidence_score * 100).toFixed(0)}%</p>
+            <div style="display: flex; justify-content: space-between; margin-bottom:.5rem">
+                <p style="margin: 0"><strong>Confidence:</strong> ${(data.governance.confidence_score * 100).toFixed(0)}%</p>
+                <p style="margin: 0; color: var(--risk-moderate); font-weight: 600" title="Optimization objective value (Z)">Z-Score: ${zDisplay}</p>
+            </div>
             <ul class="audit-list">
                 ${data.governance.audit_events.map(ev => `<li>${esc(ev)}</li>`).join('')}
             </ul>
@@ -271,6 +287,32 @@
             requestsList.innerHTML = '<p class="requests-empty">Could not load requests.</p>';
         }
     }
+
+    // ── Emergency Contact Modal ──
+    const emergencyModal = document.getElementById('emergency-modal');
+    window.openEmergencyContactModal = function () {
+        if (emergencyModal) {
+            emergencyModal.classList.add('visible');
+            const callSim = document.getElementById('call-simulation');
+            if (callSim) callSim.hidden = true;
+            const actionsEnv = document.getElementById('modal-actions-container');
+            if (actionsEnv) actionsEnv.hidden = false;
+        }
+    };
+    window.closeEmergencyContactModal = function () {
+        if (emergencyModal) emergencyModal.classList.remove('visible');
+    };
+    window.simulatePatientCall = function () {
+        document.getElementById('modal-actions-container').hidden = true;
+        const callSim = document.getElementById('call-simulation');
+        callSim.hidden = false;
+        callSim.innerHTML = '📞 Dialing (902) 555-0198... Connecting to patient.';
+        callSim.style.animation = 'pulse 2s infinite';
+        setTimeout(() => {
+            callSim.innerHTML = '✅ Connected! Call duration: 00:01';
+            callSim.style.animation = 'none';
+        }, 1500);
+    };
 
     loadRequests();
     setInterval(loadRequests, 10000);

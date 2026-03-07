@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="/static/admin.css">
+    <link rel="stylesheet" href="/static/admin.css?v=5">
 </head>
 
 <body>
@@ -245,11 +245,58 @@
         </section>
     </main>
 
+    <!-- ═══════════ EMERGENCY CONTACT MODAL ═══════════ -->
+    <div id="emergency-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeEmergencyContactModal()" aria-label="Close modal">×</button>
+            <div class="modal-header">
+                <div class="modal-icon">🚨</div>
+                <h2>Emergency Contact Profile</h2>
+            </div>
+            <div class="modal-body">
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">JD</div>
+                        <div class="profile-title">
+                            <h3>John Doe</h3>
+                            <span class="patient-id">ID: 884-219-440</span>
+                        </div>
+                    </div>
+                    <div class="profile-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Phone:</span>
+                            <span class="detail-value highlight-phone">📞 (902) 555-0198</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Health Card:</span>
+                            <span class="detail-value">NS 1234 567 890 (Exp: 05/28)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Prior History:</span>
+                            <span class="detail-value">Hypertension, 1 prior ED visit (chest pain - Jan 2025)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Primary Care:</span>
+                            <span class="detail-value">Dr. Smith (Halifax Clinic)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions" id="modal-actions-container">
+                    <button type="button" class="btn-call" onclick="simulatePatientCall()">Call Patient Now</button>
+                    <button type="button" class="btn-dismiss" onclick="closeEmergencyContactModal()">Close</button>
+                </div>
+                <div id="call-simulation" hidden style="margin-top: 1rem; padding: 1rem; background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: 8px; color: #10b981; text-align: center; font-weight: bold; animation: pulse 2s infinite;">
+                    📞 Dialing (902) 555-0198... Connecting to patient.
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer id="app-footer">
         <p>KLARA OS v1.1 &mdash; CGI DataJam 2026 &mdash; Clinician Dashboard</p>
     </footer>
 
-    <script src="/static/admin.js"></script>
+    <script src="/static/admin.js?v=5"></script>
 </body>
 
 </html>
