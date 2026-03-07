@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KLARA OS — Klara's Sun</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 42rem; margin: 0 auto; padding: 2rem; color: #1a1a1a; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .sub { color: #555; margin-bottom: 1.5rem; }
+    p { margin: 0.75rem 0; }
+    a { color: #0969da; }
+    .box { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 8px; padding: 1rem 1.25rem; margin: 1.25rem 0; }
+    .box strong { display: block; margin-bottom: 0.25rem; }
+    code { background: #ebecf0; padding: 0.15em 0.4em; border-radius: 4px; font-size: 0.9em; }
+    ol { margin: 0.5rem 0; padding-left: 1.25rem; }
+  </style>
+</head>
+<body>
+  <h1>KLARA OS — Klara's Sun</h1>
+  <p class="sub">Nova Scotia healthcare navigation prototype</p>
+  <p>Patient intake, care pathway routing, and navigation for Nova Scotia. Same team — repo linked to <strong>gavinshklanka</strong> / Klara-s_Sun.</p>
+
+  <div class="box">
+    <strong>Run the app and patient UI</strong>
+    <p>The app lives in <code>cgidatahackathon/</code>. From a clone:</p>
+    <ol>
+      <li>Open the <code>cgidatahackathon</code> folder.</li>
+      <li>Follow <code>cgidatahackathon/README.md</code>: create a venv, <code>pip install -r requirements.txt</code>, then:</li>
+    </ol>
+    <p><code>uvicorn main:app --reload --port 8000</code></p>
+    <p>Then open <a href="http://127.0.0.1:8000" target="_blank" rel="noopener">http://127.0.0.1:8000</a> for the patient experience.</p>
+  </div>
+
+  <p><a href="https://github.com/gavinshklanka/Klara-s_Sun">Repository: gavinshklanka/Klara-s_Sun</a></p>
+</body>
+</html>
