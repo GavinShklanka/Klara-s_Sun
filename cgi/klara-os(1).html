@@ -1642,6 +1642,9 @@ footer {
     <p class="hero-sub">
       A navigation intelligence layer helping Nova Scotians reach the right care, at the right time — with calm, clinical precision.
     </p>
+    <p class="hero-sub" style="font-size:15px;margin-top:12px;opacity:0.9;">
+      KLARA combines conversational clinical intake with optimization-based routing to guide patients to the most appropriate care pathway.
+    </p>
 
     <div class="hero-actions">
       <button class="btn-primary" onclick="scrollToIntake()">
@@ -1745,11 +1748,11 @@ footer {
     <div class="card" style="padding:40px 32px 36px;">
       <div class="pipeline-wrap" id="pipelineWrap">
 
-        <!-- Stage 1: Patient Input -->
+        <!-- Stage 1: Conversational Intake (Agentic RAG + Medline) -->
         <div class="pipeline-stage" id="stage-0">
           <div class="pipeline-node">◎</div>
           <div class="pipeline-connector"></div>
-          <div class="pipeline-label">Patient<br>Input</div>
+          <div class="pipeline-label">Conversational<br>Intake</div>
         </div>
 
         <!-- Stage 2: Symptom Parsing -->

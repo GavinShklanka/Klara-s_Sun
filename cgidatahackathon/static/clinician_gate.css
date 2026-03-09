@@ -1,0 +1,114 @@
+/* Clinician gate — healthcare-grade, demo-safe */
+:root {
+    --klara-primary: #1f4f82;
+    --klara-secondary: #3a78b4;
+    --klara-accent: #79aee6;
+    --klara-bg: #f6f9fc;
+    --klara-card: #ffffff;
+    --klara-border: #dbe6f2;
+    --klara-text: #1c2a39;
+    --klara-muted: #6b7c8f;
+}
+
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    background: var(--klara-bg);
+    color: var(--klara-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.gate-bg {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, #ffffff 0%, #eef5fb 100%);
+    z-index: 0;
+}
+
+.clinician-gate {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+}
+
+.card {
+    background: var(--klara-card);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--klara-border);
+    padding: 2rem;
+}
+
+.gate-logo { margin-bottom: 1.5rem; }
+.gate-logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--klara-primary);
+}
+.gate-logo-accent { color: var(--klara-secondary); }
+
+.gate-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--klara-text);
+}
+
+.gate-desc {
+    margin: 0 0 1.5rem 0;
+    font-size: 0.9375rem;
+    color: var(--klara-muted);
+    line-height: 1.5;
+}
+
+.gate-form { display: flex; flex-direction: column; gap: 1rem; }
+.gate-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--klara-text);
+}
+.gate-input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 1rem;
+    border: 1px solid var(--klara-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--klara-text);
+}
+.gate-input:focus {
+    outline: none;
+    border-color: var(--klara-secondary);
+    box-shadow: 0 0 0 3px rgba(58, 120, 180, 0.15);
+}
+.gate-hint {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--klara-muted);
+}
+.gate-btn {
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background: var(--klara-primary);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.gate-btn:hover { background: var(--klara-secondary); }
+.gate-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(31, 79, 130, 0.25);
+}
+
+.gate-footer { margin: 1.5rem 0 0 0; font-size: 0.875rem; }
+.gate-footer a { color: var(--klara-secondary); text-decoration: none; }
+.gate-footer a:hover { text-decoration: underline; }

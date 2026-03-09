@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klara System Control Room — Observability</title>
+    <meta name="description" content="Developer and system oversight dashboard. Pipeline state, routing decisions, telemetry, policy compliance. No engine or narrative changes.">
+    <link rel="stylesheet" href="/static/control_room.css">
+</head>
+<body>
+    <header class="cr-header" role="banner">
+        <div class="cr-header-inner">
+            <h1 class="cr-logo">Klara System Control Room</h1>
+            <nav class="cr-nav" aria-label="Navigation">
+                <a href="/">Patient View</a>
+                <a href="/command-center">Command Center</a>
+                <a href="/admin">Admin</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="control-room" role="main">
+        <p class="cr-note" aria-live="polite">Mission control interface. Data from existing APIs only. For engineering visibility and debugging.</p>
+
+        <div class="cr-grid">
+            <section class="cr-card" aria-labelledby="cr-pipeline-heading">
+                <h2 id="cr-pipeline-heading">Pipeline State</h2>
+                <ul class="cr-pipeline-stages" id="cr-pipeline-stages" aria-label="Routing pipeline stages">
+                    <li data-stage="1">Patient Input</li>
+                    <li data-stage="2">Symptom Parser</li>
+                    <li data-stage="3">Risk Engine</li>
+                    <li data-stage="4">Eligibility Engine</li>
+                    <li data-stage="5">Policy Governance</li>
+                    <li data-stage="6">Optimization Model</li>
+                    <li data-stage="7">Care Sequence</li>
+                    <li data-stage="8">Healthcare Graph</li>
+                </ul>
+                <div class="cr-pipeline-live" id="cr-pipeline-live">
+                    <p><strong>Active Stage:</strong> <span id="cr-active-stage">—</span></p>
+                    <p><strong>Risk Score:</strong> <span id="cr-risk-score">—</span></p>
+                    <p><strong>Latency:</strong> <span id="cr-latency">—</span></p>
+                </div>
+            </section>
+
+            <section class="cr-card" aria-labelledby="cr-routing-heading">
+                <h2 id="cr-routing-heading">Routing Decisions</h2>
+                <div class="cr-routing-block" id="cr-routing-block">
+                    <p><strong>Patient ID:</strong> <span id="cr-patient-id">—</span></p>
+                    <p><strong>Symptoms:</strong> <span id="cr-symptoms">—</span></p>
+                    <p><strong>Routing Decision:</strong> <span id="cr-decision">—</span></p>
+                    <p><strong>Facility:</strong> <span id="cr-facility">—</span></p>
+                    <p><strong>Estimated Wait:</strong> <span id="cr-wait">—</span></p>
+                    <hr class="cr-hr">
+                    <p><strong>Decision trace:</strong> <span id="cr-trace">—</span></p>
+                    <p><strong>Policy rule applied:</strong> <span id="cr-policy-rule">—</span></p>
+                    <p><strong>Optimization score:</strong> <span id="cr-opt-score">—</span></p>
+                </div>
+            </section>
+
+            <section class="cr-card" aria-labelledby="cr-telemetry-heading">
+                <h2 id="cr-telemetry-heading">System Telemetry</h2>
+                <div class="cr-telemetry-block" id="cr-telemetry-block">
+                    <p><strong>FPS:</strong> <span id="cr-fps">—</span></p>
+                    <p><strong>Simulation Tick:</strong> <span id="cr-tick">16ms</span></p>
+                    <p><strong>Active Nodes:</strong> <span id="cr-active-nodes">—</span></p>
+                    <p><strong>ER Load:</strong> <span id="cr-er-load">—</span></p>
+                </div>
+            </section>
+
+            <section class="cr-card" aria-labelledby="cr-policy-heading">
+                <h2 id="cr-policy-heading">Policy Compliance</h2>
+                <div class="cr-policy-block" id="cr-policy-block">
+                    <p><strong>Policy Check:</strong> <span id="cr-policy-status">PASS</span></p>
+                    <p><strong>Violations:</strong> <span id="cr-violations">0</span></p>
+                    <p class="cr-policy-rules" aria-label="Example policy rules">cardiac symptoms → ER · stroke indicators → ER · low-risk → virtual care</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="cr-footer">
+        <p>System Control Room. Observability only. No engine or narrative logic modified.</p>
+    </footer>
+
+    <script src="/static/control_room.js"></script>
+</body>
+</html>

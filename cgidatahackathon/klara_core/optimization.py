@@ -7,6 +7,8 @@ from __future__ import annotations
 import time
 from typing import Dict, List
 
+from klara_core.healthcare_graph import expand_sequence
+
 
 PATHWAYS = [
     "virtualcarens",
@@ -95,14 +97,19 @@ def optimize_pathways(
     eligible_pathways: List[str],
     capacities: Dict[str, int],
     preference_adjustments: Dict[str, float] | None = None,
+    policy_context: Dict | None = None,
 ):
     """
     Returns routing result with solver metadata while preserving behavior if optimizers are unavailable.
+    Policy context may influence costs (e.g. MENTAL_HEALTH_PRIORITY) without changing contract.
     """
     start = time.time()
     feasible = [p for p in eligible_pathways if p in PATHWAYS]
     base = _base_costs()
-    adjustments = preference_adjustments or {}
+    adjustments = dict(preference_adjustments or {})
+    # Policy: mental health priority — reduce cost so pathway is preferred when policy applies
+    if policy_context and "MENTAL_HEALTH_PRIORITY" in policy_context.get("applied_policies", []):
+        adjustments["mental_health"] = adjustments.get("mental_health", 0.0) - 1.5
     costs = {
         p: base[p] + _risk_penalty(risk_level, p) + float(adjustments.get(p, 0.0))
         for p in PATHWAYS
@@ -138,11 +145,15 @@ def optimize_pathways(
     pathway_costs = {p: round(costs[p], 2) for p in feasible}
     pathway_ranking = [primary] + alternatives
 
+    # Care sequence from Nova Scotia healthcare graph (optional; default [primary])
+    care_sequence = expand_sequence(primary)
+
     return {
         "status": result.get("status", "unknown"),
         "solver": solver_used,
         "primary": primary,
         "alternatives": alternatives,
+        "care_sequence": care_sequence,
         "objective_value": float(costs.get(primary, 0.0)),
         "solve_time_ms": (time.time() - start) * 1000.0,
         "pathway_costs": pathway_costs,

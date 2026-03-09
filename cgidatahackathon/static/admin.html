@@ -44,6 +44,7 @@
                 </div>
             </div>
             <div class="header-right">
+                <a href="/clinician-dashboard" class="patient-link">Command Center</a>
                 <a href="/" class="patient-link">← Patient View</a>
                 <p class="tagline">AI-Powered Healthcare Navigation</p>
             </div>
@@ -292,6 +293,20 @@
                 <h3><span class="card-icon">📬</span> Patient Care Requests</h3>
                 <div id="requests-list" class="requests-list">Loading…</div>
             </div>
+
+            <!-- ─── Clinician map view: infrastructure, care sequence routes, future demand clusters ─── -->
+            <section class="clinician-map-section" id="clinician-map-section">
+                <h2 class="panel-title"><span class="card-icon">🗺</span> Nova Scotia Healthcare Map</h2>
+                <p class="map-legend-desc">Infrastructure nodes (by type) · Care sequence routes · Future demand clusters (placeholder).</p>
+                <div id="admin-map" class="admin-map-container"></div>
+                <div class="map-legend">
+                    <span class="legend-item"><span class="legend-dot hospital"></span> Hospital</span>
+                    <span class="legend-item"><span class="legend-dot lab"></span> Lab</span>
+                    <span class="legend-item"><span class="legend-dot pharmacy"></span> Pharmacy</span>
+                    <span class="legend-item"><span class="legend-dot community_health"></span> Community health</span>
+                    <span class="legend-item"><span class="legend-dot telehealth"></span> Telehealth</span>
+                </div>
+            </section>
         </section>
     </main>
 
@@ -299,6 +314,10 @@
         <p>KLARA OS v1.1 &mdash; CGI DataJam 2026 &mdash; Clinician Dashboard</p>
     </footer>
 
+    <script src="https://unpkg.com/deck.gl@8.9.35/dist.min.js"></script>
+    <script src="https://unpkg.com/mapbox-gl@2.15.0/dist/mapbox-gl.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/mapbox-gl@2.15.0/dist/mapbox-gl.css">
+    <script src="/static/map.js"></script>
     <script src="/static/admin.js"></script>
 </body>
 

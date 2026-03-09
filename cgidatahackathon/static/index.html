@@ -37,6 +37,7 @@
         <div id="system-status-bar" class="system-status-bar" aria-label="System status and capabilities">
             <div class="system-status-row">
                 <span class="status-item status-connection" id="connection-status-auth">🔒 Not signed in</span>
+                <span class="status-item status-backend" id="connection-status-backend" aria-live="polite">—</span>
                 <span class="status-item status-location" id="connection-status-location"></span>
                 <div class="status-item status-capabilities-wrap">
                     <button type="button" id="capabilities-toggle" class="btn-capabilities" title="Capabilities" aria-haspopup="true" aria-expanded="false">
@@ -80,7 +81,7 @@
 
             <!-- ═══ Chat / Intake View (with decision graph) ═══ -->
             <div id="chat-view" class="view-container view-hidden">
-                <div class="chat-with-graph">
+                <div class="klara-layout chat-with-graph">
                     <div class="decision-graph-panel" id="decision-graph-panel">
                         <h3 class="graph-title">Decision Pipeline</h3>
                         <div class="graph-nodes" id="graph-nodes">
@@ -194,48 +195,118 @@
                     </div>
                 </div>
 
-                <div class="result-hero" id="result-hero">
-                    <div class="result-emoji">🏥</div>
-                    <h2 class="result-heading">We recommend…</h2>
+                <div class="result-hero routing-recommendation-card" id="result-hero">
+                    <h2 class="result-hero-title">Routing Recommendation</h2>
                     <p class="result-pathway" id="result-pathway"></p>
+                    <p class="result-reason result-hero-explanation" id="result-reason"></p>
                 </div>
-                <p class="result-reason" id="result-reason"></p>
 
                 <div class="result-options" id="result-options">
-                    <h3>Your Options</h3>
+                    <h3>Other options</h3>
                     <div id="options-list" class="options-list"></div>
                 </div>
 
+                <div class="care-journey-panel" id="care-journey-panel">
+                    <h3>Your care journey</h3>
+                    <p class="care-journey-desc">Suggested sequence of care steps based on your intake.</p>
+                    <ol class="care-journey-timeline" id="care-journey-timeline"></ol>
+                </div>
+
+                <div class="result-map-wrap" id="result-map-wrap">
+                    <div class="result-map-header">
+                        <h3>Nova Scotia healthcare map</h3>
+                        <button type="button" id="map-expand-btn" class="map-expand-btn" aria-label="Expand map">Expand Map</button>
+                    </div>
+                    <div class="map-filters" id="map-filters">
+                        <span class="map-filters-label">Show:</span>
+                        <label><input type="checkbox" data-type="hospital" checked> Hospitals</label>
+                        <label><input type="checkbox" data-type="lab" checked> Labs</label>
+                        <label><input type="checkbox" data-type="mental_health" checked> Mental Health</label>
+                        <label><input type="checkbox" data-type="community_health" checked> Community Health</label>
+                        <label><input type="checkbox" data-type="pharmacy" checked> Pharmacy</label>
+                        <label><input type="checkbox" data-type="telehealth" checked> Telehealth</label>
+                        <label><input type="checkbox" data-type="transport" checked> Transport</label>
+                    </div>
+                    <div id="result-map" class="result-map-container"></div>
+                </div>
+
                 <div class="optimization-explanation-panel" id="optimization-explanation-panel">
-                    <h4>Why this route was selected</h4>
+                    <h4>Why this suggestion was made</h4>
                     <p id="optimization-explanation-text"></p>
                 </div>
 
                 <div class="lp-model-panel" id="lp-model-panel">
                     <button type="button" class="lp-toggle" id="lp-toggle" aria-expanded="false">
                         <span class="lp-toggle-icon">▸</span>
-                        <span>How your route was chosen — and how you're helping Nova Scotia</span>
+                        <span>How this suggestion was made — and how you're helping Nova Scotia</span>
                     </button>
                     <div class="lp-content" id="lp-content" hidden>
+                        <div class="lp-optimization-engine" id="lp-optimization-engine">
+                            <h4 class="lp-section-title">Optimization engine</h4>
+                            <div class="lp-meta-grid">
+                                <span class="lp-meta-item"><strong>Solver:</strong> <span id="lp-solver">—</span></span>
+                                <span class="lp-meta-item"><strong>Status:</strong> <span id="lp-status">—</span></span>
+                                <span class="lp-meta-item"><strong>Objective score:</strong> <span id="lp-objective">—</span></span>
+                                <span class="lp-meta-item"><strong>Solve time:</strong> <span id="lp-solve-time">—</span></span>
+                            </div>
+                            <div class="lp-cost-breakdown" id="lp-cost-breakdown-wrap" hidden>
+                                <h5 class="lp-subtitle">Pathway cost breakdown</h5>
+                                <ul id="lp-cost-breakdown"></ul>
+                            </div>
+                        </div>
                         <div class="lp-user-story">
-                            <h4 class="lp-section-title">How your route was determined</h4>
-                            <p class="lp-story-intro">KLARA looked at your symptoms, how urgent they are, how long they have lasted, where you are in the province, and which services are available. From that, it chose one recommended pathway—the option that best balances your safety with current capacity across the system.</p>
+                            <h4 class="lp-section-title">How this suggestion was made</h4>
+                            <p class="lp-story-intro">Based on the information you provided—symptoms, duration, location, and current service availability—one option is suggested as a possible next step. This is navigation guidance only. A clinician can help confirm the most appropriate care for your situation.</p>
 
                             <h4 class="lp-section-title">Why this helps emergency care</h4>
-                            <p class="lp-story-stat">Emergency departments need to stay available for life-threatening situations. When people with non-urgent needs use other services, it eases pressure on the ED so it can focus on true emergencies. In Nova Scotia, about 35% of emergency department visits are classified as non-emergency. Using the pathway KLARA suggests helps keep emergency care ready for those who need it most.</p>
+                            <p class="lp-story-stat">Emergency departments stay available for life-threatening situations when other services are used for concerns that may not require the ED. In Nova Scotia, a portion of emergency department visits may be suitable for other settings. Using the suggested option when appropriate helps keep emergency care ready for those who need it most.</p>
 
                             <h4 class="lp-section-title">How you're helping Nova Scotia</h4>
-                            <p class="lp-story-logic">Choosing the recommended pathway helps the system use existing services more effectively. KLARA does not create new demand; it helps direct people to the right place. That means better use of resources, less strain on overcrowded services, and improved access to care for everyone in the province. Your choice supports that.</p>
+                            <p class="lp-story-logic">Choosing a suggested pathway when appropriate helps the system use existing services effectively. This tool does not create new demand; it helps direct people to possible next steps. That can mean better use of resources and improved access to care across the province.</p>
                         </div>
                         <div class="lp-ranking-section">
-                            <p class="lp-ranking-intro">Pathways that were considered for you (best fit first):</p>
+                            <p class="lp-ranking-intro">Options that were considered (best fit first):</p>
                             <div class="lp-ranking" id="lp-ranking"></div>
                         </div>
                     </div>
                 </div>
 
+                <div id="governance-panel" class="governance-panel">
+                    <h3>Clinical Decision Governance</h3>
+                    <div class="gov-grid">
+                        <div class="gov-card">
+                            <h4>Risk Assessment</h4>
+                            <div id="gov-risk"></div>
+                        </div>
+                        <div class="gov-card">
+                            <h4>Routing Decision</h4>
+                            <div id="gov-routing"></div>
+                        </div>
+                        <div class="gov-card">
+                            <h4>Capacity Constraints</h4>
+                            <div id="gov-capacity"></div>
+                        </div>
+                        <div class="gov-card">
+                            <h4>Optimization Outcome</h4>
+                            <div id="gov-optimization"></div>
+                        </div>
+                        <div class="gov-card">
+                            <h4>Policy Compliance</h4>
+                            <div id="gov-policy"></div>
+                        </div>
+                        <div class="gov-card">
+                            <h4>System Impact</h4>
+                            <div id="gov-impact"></div>
+                        </div>
+                        <div class="gov-card">
+                            <h4>Execution Trace</h4>
+                            <ul id="gov-trace"></ul>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="result-summary" id="result-summary">
-                    <h3>What We Found (Observable Intake)</h3>
+                    <h3>Intake summary</h3>
                     <div id="summary-body"></div>
                     <div id="submit-request-area" class="submit-request-area">
                         <p class="submit-hint">Pick an option above, then submit your request.</p>
@@ -258,16 +329,22 @@
                     <div class="dashboard-intake-report" id="dashboard-intake-report"></div>
                 </div>
 
-                <p class="disclaimer">This is a navigation aid, not a medical diagnosis. If you feel your condition is life-threatening, please call <strong>911</strong> immediately.</p>
+                <p class="disclaimer">This is a navigation aid, not a medical assessment. If you believe you have a life-threatening emergency, call <strong>911</strong>.</p>
             </div>
         </main>
 
         <footer id="user-footer">
-            <a href="/admin" class="admin-link">Clinician / Admin View →</a>
+            <a href="/clinician" class="admin-link">Clinician access</a>
+            <span class="footer-sep">·</span>
+            <a href="/admin" class="admin-link">Admin View →</a>
             <p>KLARA OS v1.1 — Nova Scotia Healthcare Navigation</p>
         </footer>
     </div>
 
+    <script src="https://unpkg.com/deck.gl@8.9.35/dist.min.js"></script>
+    <script src="https://unpkg.com/mapbox-gl@2.15.0/dist/mapbox-gl.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/mapbox-gl@2.15.0/dist/mapbox-gl.css">
+    <script src="/static/map.js"></script>
     <script src="/static/user.js"></script>
 </body>
 

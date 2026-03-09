@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KLARA OS — Clinician Command Center</title>
+    <meta name="description" content="Operational visibility: healthcare demand, routing flows, system capacity across Nova Scotia.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/mapbox-gl@2.15.0/dist/mapbox-gl.css">
+    <link rel="stylesheet" href="/static/clinician_dashboard.css">
+</head>
+<body>
+    <header class="cc-header">
+        <div class="cc-header-inner">
+            <h1 class="cc-logo">KLARA<span class="cc-logo-accent">OS</span> <span class="cc-badge">Command Center</span></h1>
+            <nav class="cc-nav">
+                <a href="/">Patient View</a>
+                <a href="/admin">Clinician Dashboard</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="cc-main">
+        <section class="cc-map-section">
+            <h2 class="cc-section-title">Nova Scotia Healthcare Infrastructure &amp; Demand</h2>
+            <div id="cc-map" class="cc-map-container"></div>
+            <div class="cc-map-legend">
+                <span class="cc-legend-item"><span class="cc-legend-dot hospital"></span> Hospital</span>
+                <span class="cc-legend-item"><span class="cc-legend-dot lab"></span> Lab</span>
+                <span class="cc-legend-item"><span class="cc-legend-dot pharmacy"></span> Pharmacy</span>
+                <span class="cc-legend-item"><span class="cc-legend-dot community_health"></span> Community health</span>
+                <span class="cc-legend-item"><span class="cc-legend-dot telehealth"></span> Telehealth</span>
+                <span class="cc-legend-item"><span class="cc-legend-dot heatmap"></span> Demand heatmap</span>
+            </div>
+        </section>
+
+        <section class="cc-panels-grid">
+            <h2 class="cc-section-title">System Intelligence</h2>
+            <div class="cc-panel" id="cc-panel-sessions">
+                <h3><span class="cc-panel-icon">📊</span> Sessions</h3>
+                <div class="cc-stat"><span class="cc-stat-value" id="cc-sessions">0</span> <span class="cc-stat-label">Active</span></div>
+                <div class="cc-stat"><span class="cc-stat-value" id="cc-requests">0</span> <span class="cc-stat-label">Requests today</span></div>
+            </div>
+            <div class="cc-panel" id="cc-panel-rural">
+                <h3><span class="cc-panel-icon">🌾</span> Rural demand</h3>
+                <div class="cc-stat"><span class="cc-stat-value" id="cc-rural-demand">—</span> <span class="cc-stat-label">From routing flow</span></div>
+                <p class="cc-panel-note">Derived from regional routing counts (existing API).</p>
+            </div>
+            <div class="cc-panel" id="cc-panel-barriers">
+                <h3><span class="cc-panel-icon">⚠</span> Access barriers</h3>
+                <div class="cc-stat"><span class="cc-stat-value" id="cc-barriers-count">0</span> <span class="cc-stat-label">Flagged</span></div>
+                <p class="cc-panel-note">Patients who cannot reach care (see table).</p>
+            </div>
+            <div class="cc-panel" id="cc-panel-telehealth">
+                <h3><span class="cc-panel-icon">📞</span> Telehealth volume</h3>
+                <div class="cc-stat"><span class="cc-stat-value" id="cc-telehealth-volume">0</span> <span class="cc-stat-label">811 + VirtualCare</span></div>
+                <p class="cc-panel-note">From routing_recommendation counts (existing API).</p>
+            </div>
+        </section>
+
+        <section class="cc-optimization-section">
+            <h2 class="cc-section-title">Optimization insight</h2>
+            <p class="cc-section-desc">From latest assess response: solver, solve_time, objective_value, pathway_ranking (backend contract unchanged).</p>
+            <div class="cc-optimization-grid">
+                <div class="cc-opt-item"><span class="cc-opt-label">Solver</span><span class="cc-opt-value" id="cc-opt-solver">—</span></div>
+                <div class="cc-opt-item"><span class="cc-opt-label">Solve time (ms)</span><span class="cc-opt-value" id="cc-opt-solve-time">—</span></div>
+                <div class="cc-opt-item"><span class="cc-opt-label">Objective value</span><span class="cc-opt-value" id="cc-opt-objective">—</span></div>
+                <div class="cc-opt-item cc-opt-full"><span class="cc-opt-label">Pathway ranking</span><span class="cc-opt-value" id="cc-opt-ranking">—</span></div>
+            </div>
+        </section>
+
+        <section class="cc-requests-section">
+            <h2 class="cc-section-title">Request search</h2>
+            <p class="cc-section-desc">Filter by session ID or patient ID (session_id).</p>
+            <div class="cc-search-row">
+                <label for="cc-request-search">Search requests</label>
+                <input type="text" id="cc-request-search" class="cc-search-input" placeholder="Session or patient ID…" aria-label="Search requests by session or patient ID">
+                <button type="button" id="cc-request-search-btn" class="cc-search-btn">Search</button>
+            </div>
+            <div class="cc-table-wrap">
+                <table class="cc-table" id="cc-requests-table">
+                    <thead>
+                        <tr>
+                            <th>Session</th>
+                            <th>Pathway</th>
+                            <th>Region</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cc-requests-tbody">
+                        <tr><td colspan="4" class="cc-empty">Enter a session/patient ID to filter, or leave blank for recent requests.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="cc-barriers-section">
+            <h2 class="cc-section-title">Access barrier table</h2>
+            <p class="cc-section-desc">Patients who cannot reach care (data from existing API / future integration).</p>
+            <div class="cc-table-wrap">
+                <table class="cc-table" id="cc-barriers-table">
+                    <thead>
+                        <tr>
+                            <th>Session / Region</th>
+                            <th>Barrier type</th>
+                            <th>Pathway attempted</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cc-barriers-tbody">
+                        <tr><td colspan="4" class="cc-empty">No access barriers reported. Data from existing API when available.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer class="cc-footer">
+        <p>KLARA OS Clinician Command Center — Operational visibility only. Backend routing contract unchanged.</p>
+    </footer>
+
+    <script src="https://unpkg.com/deck.gl@8.9.35/dist.min.js"></script>
+    <script src="https://unpkg.com/mapbox-gl@2.15.0/dist/mapbox-gl.js"></script>
+    <script src="/static/map.js"></script>
+    <script src="/static/clinician_dashboard.js"></script>
+</body>
+</html>

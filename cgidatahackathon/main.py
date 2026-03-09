@@ -41,9 +41,25 @@ from klara_data.schemas import (
 from klara_core.graph.decision_graph import run_decision_pipeline
 from klara_core.navigation_context import attach_context
 from klara_core.summary_builder import build_optimization_explanation
+from klara_core.system_metrics import compute_system_impact
 from klara_core.telemetry import log_request, log_session, log_scribe_enrollment, telemetry
 
 STATIC_DIR = Path(__file__).parent / "static"
+NS_HEALTHCARE_NODES_PATH = Path(__file__).parent / "klara_data" / "ns_healthcare_nodes.json"
+
+
+def _load_ns_healthcare_nodes():
+    """Load Nova Scotia healthcare nodes for map visualization (unchanged routing contract)."""
+    if not NS_HEALTHCARE_NODES_PATH.exists():
+        return {"nodes": [], "pathway_sequences": {}}
+    import json
+    try:
+        with open(NS_HEALTHCARE_NODES_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+        return {"nodes": data.get("nodes", []), "pathway_sequences": data.get("pathway_sequences", {})}
+    except Exception:
+        return {"nodes": [], "pathway_sequences": {}}
+
 
 # ── Service directory for "I Know What Service I Need" (bypasses conversational intake) ──
 SERVICE_DIRECTORY = [
@@ -100,16 +116,58 @@ app = FastAPI(title="KLARA OS Core Engine")
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
+@app.get("/api/health")
+def api_health():
+    """Lightweight health check for frontend connectivity verification."""
+    return {"status": "ok", "app": "klara"}
+
+
 @app.get("/")
 def root():
     """Serve the patient-facing user view."""
     return FileResponse(str(STATIC_DIR / "index.html"))
 
 
+@app.get("/clinician")
+def clinician():
+    """Clinician access gate (demo). Production: OAuth / SAML / provincial identity."""
+    return FileResponse(str(STATIC_DIR / "clinician_gate.html"))
+
+
 @app.get("/admin")
 def admin():
     """Serve the clinician / admin dashboard."""
     return FileResponse(str(STATIC_DIR / "admin.html"))
+
+
+@app.get("/clinician-dashboard")
+def clinician_dashboard():
+    """Serve the Clinician Command Center dashboard (operational visibility)."""
+    return FileResponse(str(STATIC_DIR / "clinician_dashboard.html"))
+
+
+@app.get("/dashboard")
+def dashboard():
+    """Alias for admin page. UI routing repair per EXECUTIVE_COMPLIANCE_CHECK_UI_ROUTING_AUDIT."""
+    return FileResponse(str(STATIC_DIR / "admin.html"))
+
+
+@app.get("/command-center")
+def command_center():
+    """Command Center — provincial operations dashboard (demand pressure, pathway utilization, routing history). Reads existing APIs only."""
+    return FileResponse(str(STATIC_DIR / "command_center.html"))
+
+
+@app.get("/control-room")
+def control_room():
+    """Control Room — developer and system oversight dashboard (pipeline state, routing decisions, telemetry, policy). No engine or narrative changes."""
+    return FileResponse(str(STATIC_DIR / "control_room.html"))
+
+
+@app.get("/results")
+def results():
+    """Alias for patient interface. Results view is in-app on index.html. UI routing repair per audit."""
+    return FileResponse(str(STATIC_DIR / "index.html"))
 
 
 @app.get("/admin/metrics")
@@ -127,6 +185,7 @@ def get_admin_metrics():
 def assess_patient(request: AssessRequest):
     log_session()
     log_request()
+    symptom_selections = getattr(request, "symptom_selections", None) or []
     opor = request.opor_context.model_dump() if request.opor_context else None
 
     result, stages_executed = run_decision_pipeline(
@@ -144,6 +203,8 @@ def assess_patient(request: AssessRequest):
     routing_output = result["routing_output"]
     summary_output = result["summary_output"]
     nav_ctx = result["nav_ctx"]
+
+    print("ROUTING RESULT:", routing_output)
 
     # ── Stage 7: Structured Intake Output ─────────────────────────────
     #  This response is the official "Structured Intake Output" feeding:
@@ -197,7 +258,9 @@ def assess_patient(request: AssessRequest):
         routing_result={
             "primary": routing_output["primary_pathway"],
             "alternatives": routing_output["options"][1:],
+            "care_sequence": routing_output.get("care_sequence"),
             "optimizer": routing_output.get("optimizer", {}),
+            "policy": routing_output.get("policy"),
         },
         response=frontend_output.model_dump(),
     )
@@ -207,6 +270,12 @@ def assess_patient(request: AssessRequest):
         routing_output["primary_pathway"],
         optimizer=routing_output.get("optimizer"),
         options=routing_output.get("options", []),
+    )
+
+    system_impact = compute_system_impact(
+        routing_output["primary_pathway"],
+        risk_output["level"],
+        routing_output.get("optimizer"),
     )
 
     response = AssessResponse(
@@ -230,7 +299,9 @@ def assess_patient(request: AssessRequest):
         routing_recommendation=RoutingRecommendation(
             primary_pathway=routing_output["primary_pathway"],
             reason=routing_output["reason"],
-            options=routing_output["options"]
+            options=routing_output["options"],
+            care_sequence=routing_output.get("care_sequence"),
+            policy=routing_output.get("policy"),
         ),
         system_context=SystemContext(
             region=request.region,
@@ -264,6 +335,7 @@ def assess_patient(request: AssessRequest):
         },
         pipeline_stages=stages_executed,
         optimization_explanation=opt_explanation,
+        system_impact=system_impact,
     )
 
     return response
@@ -279,6 +351,69 @@ def get_pathway_urls():
 def get_services():
     """Return service directory for 'I Know What Service I Need' (bypasses intake)."""
     return {"services": SERVICE_DIRECTORY}
+
+
+@app.get("/api/ns-healthcare-nodes")
+def get_ns_healthcare_nodes():
+    """Return Nova Scotia healthcare infrastructure nodes for map visualization. Contract unchanged."""
+    return _load_ns_healthcare_nodes()
+
+
+@app.get("/api/config")
+def get_config():
+    """Frontend config (e.g. Mapbox token for map layer). No routing/assess logic."""
+    import os
+    return {"mapbox_access_token": os.environ.get("MAPBOX_ACCESS_TOKEN", "")}
+
+
+@app.get("/api/demand-pressure")
+def get_demand_pressure():
+    """Provincial access pressure per node for map heatmap. Uses telemetry + requests; no routing contract change."""
+    from klara_core.demand_intelligence import compute_node_pressure, compute_node_pressure_from_routing
+    from collections import defaultdict
+    requests = [{"pathway": r.get("pathway", ""), "care_sequence": r.get("care_sequence")} for r in DEMO_REQUESTS]
+    care_seqs = [r.get("care_sequence") for r in DEMO_REQUESTS if isinstance(r.get("care_sequence"), list)]
+    p1 = compute_node_pressure(requests, care_seqs if care_seqs else None)
+    p2 = compute_node_pressure_from_routing(dict(telemetry.routing_counts))
+    combined = defaultdict(float)
+    for k, v in p1.items():
+        combined[k] += v
+    for k, v in p2.items():
+        combined[k] += v
+    if not combined:
+        return {"pressure": {}}
+    mx = max(combined.values())
+    pressure = {k: round(v / mx, 2) for k, v in combined.items()}
+    return {"pressure": pressure}
+
+
+# ── Scenario simulation (Phase 6, 9): planning scenarios; no routing contract change ──
+@app.get("/api/scenario/physicians")
+def scenario_physicians(region: str = "Cape Breton", additional_physicians: int = 10, baseline_requests: int = 0):
+    """Simulate adding physicians in a region. Returns estimated patients_served, strain change, ER overflow reduction."""
+    from klara_core.scenario_engine import run_physician_scenario
+    return run_physician_scenario(region, additional_physicians, baseline_requests)
+
+
+@app.get("/api/scenario/er_capacity")
+def scenario_er_capacity(region: str = "Halifax", capacity_change_pct: float = -10.0, baseline_ed_visits: int = 0):
+    """Simulate ER capacity change. capacity_change_pct: negative = reduction, positive = increase."""
+    from klara_core.scenario_engine import run_er_capacity_scenario
+    return run_er_capacity_scenario(region, capacity_change_pct, baseline_ed_visits)
+
+
+@app.get("/api/scenario/demand_spike")
+def scenario_demand_spike(region: str = "Nova Scotia", demand_increase_pct: float = 20.0):
+    """Simulate demand spike (e.g. flu season)."""
+    from klara_core.scenario_engine import run_demand_spike_scenario
+    return run_demand_spike_scenario(region, demand_increase_pct)
+
+
+@app.get("/api/scenario/transport")
+def scenario_transport(region: str = "Rural NS", enable: bool = True):
+    """Simulate enabling municipal care transport."""
+    from klara_core.scenario_engine import run_transport_scenario
+    return run_transport_scenario(region, enable)
 
 
 class ScribeEnrollPayload(PydanticBaseModel):
@@ -347,27 +482,39 @@ class SubmitRequestPayload(PydanticBaseModel):
     session_id: str = ""
     pathway: str = ""
     observable_summary: str = ""
+    care_sequence: list[str] | None = None
+    optimizer: dict | None = None
+    region: str = ""
 
 
 @app.post("/api/requests")
 def submit_request(payload: SubmitRequestPayload):
     """
     Demo: Submit a care request (chosen pathway + observable summary).
-    No sensitive health data stored; for admin visibility only.
+    Optional care_sequence and optimizer stored for expandable admin cards.
+    No sensitive health data; for admin visibility only.
     """
     DEMO_REQUESTS.append({
         "session_id": payload.session_id,
         "pathway": payload.pathway,
         "observable_summary": payload.observable_summary,
         "timestamp": datetime.utcnow().isoformat() + "Z",
+        "care_sequence": payload.care_sequence,
+        "optimizer": payload.optimizer,
+        "region": payload.region,
     })
     return {"ok": True, "message": "Request submitted"}
 
 
 @app.get("/api/requests")
-def list_requests():
-    """Demo: List submitted care requests for admin view."""
-    return {"requests": list(reversed(DEMO_REQUESTS))}
+def list_requests(request_id: str = "", patient_id: str = ""):
+    """Demo: List submitted care requests. Optional filter by request_id (session_id) or patient_id (session_id)."""
+    requests = list(reversed(DEMO_REQUESTS))
+    if request_id:
+        requests = [r for r in requests if r.get("session_id", "") == request_id]
+    if patient_id:
+        requests = [r for r in requests if r.get("session_id", "") == patient_id]
+    return {"requests": requests}
 
 
 # ── Geolocation / nearby locations (FastAPI) — real NS locations + GIS-style links ──

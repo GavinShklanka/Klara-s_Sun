@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KLARA OS — System Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c14;
+    --surface: #0d1420;
+    --surface2: #111927;
+    --border: rgba(255,255,255,0.07);
+    --border-bright: rgba(255,255,255,0.14);
+    --teal: #2dd4bf;
+    --teal-dim: rgba(45,212,191,0.12);
+    --teal-glow: rgba(45,212,191,0.25);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96,165,250,0.1);
+    --amber: #fbbf24;
+    --amber-dim: rgba(251,191,36,0.1);
+    --rose: #fb7185;
+    --rose-dim: rgba(251,113,133,0.1);
+    --violet: #a78bfa;
+    --violet-dim: rgba(167,139,250,0.1);
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grid bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(45,212,191,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(45,212,191,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px 100px;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    padding: 72px 0 56px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 64px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 40px;
+  }
+
+  .wordmark {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .wordmark-icon {
+    width: 38px;
+    height: 38px;
+    border: 1.5px solid var(--teal);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .wordmark-icon::after {
+    content: '';
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 12px var(--teal);
+  }
+
+  .wordmark-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--teal);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 4vw, 3.4rem);
+    font-weight: 700;
+    line-height: 1.15;
+    color: #f1f5f9;
+    letter-spacing: -0.01em;
+  }
+
+  h1 span {
+    color: var(--teal);
+  }
+
+  .header-sub {
+    margin-top: 14px;
+    font-size: 15px;
+    color: var(--text-dim);
+    max-width: 560px;
+    font-weight: 300;
+    line-height: 1.65;
+  }
+
+  .header-meta {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .meta-badge {
+    display: inline-block;
+    padding: 5px 14px;
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .meta-jurisdiction {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* ─── SECTION TITLES ─── */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 10px;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin-bottom: 16px;
+  }
+
+  /* ─── PIPELINE ─── */
+  .pipeline-section {
+    margin-bottom: 80px;
+  }
+
+  .pipeline-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    padding: 28px 0 10px;
+  }
+
+  .pipeline-step {
+    flex-shrink: 0;
+    text-align: center;
+    position: relative;
+    opacity: 0;
+    animation: fadeSlide 0.5s ease forwards;
+  }
+
+  .pipeline-step:nth-child(odd) { animation-delay: calc(var(--i, 0) * 0.08s); }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-node {
+    width: 120px;
+    padding: 12px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border-bright);
+    border-radius: 8px;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--text-dim);
+    letter-spacing: 0.02em;
+    position: relative;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .step-node:hover {
+    border-color: var(--teal);
+    color: var(--text);
+  }
+
+  .step-node.active {
+    border-color: var(--teal);
+    color: var(--teal);
+    background: var(--teal-dim);
+    box-shadow: 0 0 20px rgba(45,212,191,0.1);
+  }
+
+  .step-arrow {
+    width: 36px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 14px;
+    opacity: 0.5;
+  }
+
+  /* ─── ARCHITECTURE LAYERS ─── */
+  .architecture {
+    margin-bottom: 80px;
+  }
+
+  .arch-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 32px;
+    position: relative;
+  }
+
+  /* Vertical connector line */
+  .arch-stack::before {
+    content: '';
+    position: absolute;
+    left: 30px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, var(--teal) 20%, var(--teal) 80%, transparent);
+    opacity: 0.2;
+  }
+
+  .layer-card {
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: border-color 0.3s;
+    opacity: 0;
+    animation: fadeSlide 0.6s ease forwards;
+  }
+
+  .layer-card:hover { border-color: var(--border-bright); }
+
+  .layer-card:nth-child(1) { animation-delay: 0.1s; --layer-accent: var(--blue); --layer-dim: var(--blue-dim); }
+  .layer-card:nth-child(2) { animation-delay: 0.2s; --layer-accent: var(--teal); --layer-dim: var(--teal-dim); }
+  .layer-card:nth-child(3) { animation-delay: 0.3s; --layer-accent: var(--violet); --layer-dim: var(--violet-dim); }
+  .layer-card:nth-child(4) { animation-delay: 0.4s; --layer-accent: var(--amber); --layer-dim: var(--amber-dim); }
+
+  .layer-card:hover { border-color: var(--layer-accent); }
+
+  .layer-header {
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    align-items: center;
+    gap: 20px;
+    padding: 22px 28px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+
+  .layer-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.12em;
+  }
+
+  .layer-title-group { }
+
+  .layer-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin-bottom: 2px;
+  }
+
+  .layer-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.06em;
+  }
+
+  .layer-badge {
+    padding: 4px 12px;
+    border-radius: 40px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.08em;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+
+  .layer-card:nth-child(1) .layer-badge { color: var(--blue); border-color: rgba(96,165,250,0.3); background: var(--blue-dim); }
+  .layer-card:nth-child(2) .layer-badge { color: var(--teal); border-color: rgba(45,212,191,0.3); background: var(--teal-dim); }
+  .layer-card:nth-child(3) .layer-badge { color: var(--violet); border-color: rgba(167,139,250,0.3); background: var(--violet-dim); }
+  .layer-card:nth-child(4) .layer-badge { color: var(--amber); border-color: rgba(251,191,36,0.3); background: var(--amber-dim); }
+
+  .layer-body {
+    padding: 28px 28px 32px;
+    background: var(--surface2);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+
+  .layer-description {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.75;
+    font-weight: 300;
+  }
+
+  .layer-description p + p { margin-top: 10px; }
+
+  .components-panel { }
+
+  .components-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .components-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .component-tag {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--text-dim);
+    transition: all 0.2s;
+  }
+
+  .component-tag:hover {
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+    border-color: var(--border-bright);
+  }
+
+  .component-tag::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--layer-accent);
+    flex-shrink: 0;
+    box-shadow: 0 0 6px var(--layer-accent);
+  }
+
+  /* ─── CONNECTOR ARROWS ─── */
+  .layer-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    position: relative;
+  }
+
+  .connector-line {
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--border-bright), transparent);
+    position: absolute;
+  }
+
+  .connector-label {
+    background: var(--bg);
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── NARRATIVE ─── */
+  .narrative-section {
+    margin-bottom: 80px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  .narrative-block {
+    padding: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .narrative-block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+
+  .narrative-block.primary::before { background: linear-gradient(90deg, var(--teal), transparent); }
+  .narrative-block.secondary::before { background: linear-gradient(90deg, var(--blue), transparent); }
+
+  .narrative-block h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin-bottom: 14px;
+  }
+
+  .narrative-block p {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  .narrative-block p + p { margin-top: 10px; }
+
+  /* ─── IMPACT STATS ─── */
+  .impact-section {
+    margin-bottom: 80px;
+  }
+
+  .impact-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 28px;
+  }
+
+  .impact-card {
+    padding: 24px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+
+  .impact-card:hover { border-color: var(--border-bright); }
+
+  .impact-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--teal);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .impact-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-left {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .footer-right {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--teal);
+    margin-right: 7px;
+    box-shadow: 0 0 8px var(--teal);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ─── FLOW DIAGRAM ─── */
+  .flow-section {
+    margin-bottom: 80px;
+  }
+
+  .flow-visual {
+    margin-top: 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .flow-visual::after {
+    content: 'KLARA OS — Navigation Pipeline';
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .flow-steps {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .flow-node {
+    flex: 1;
+    min-width: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+  }
+
+  .flow-node + .flow-node::before {
+    content: '→';
+    position: absolute;
+    left: -10px;
+    top: 22px;
+    color: var(--text-muted);
+    font-size: 14px;
+    opacity: 0.4;
+  }
+
+  .flow-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .flow-node:hover .flow-circle {
+    border-color: var(--teal);
+    color: var(--teal);
+    box-shadow: 0 0 16px rgba(45,212,191,0.15);
+  }
+
+  .flow-label {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    max-width: 90px;
+  }
+
+  /* responsive */
+  @media (max-width: 768px) {
+    .page { padding: 0 20px 80px; }
+    header { grid-template-columns: 1fr; gap: 20px; }
+    .header-meta { text-align: left; }
+    .layer-body { grid-template-columns: 1fr; }
+    .narrative-section { grid-template-columns: 1fr; }
+    .impact-grid { grid-template-columns: repeat(2, 1fr); }
+    .flow-steps { flex-wrap: nowrap; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ─── HEADER ─── -->
+  <header>
+    <div>
+      <div class="wordmark">
+        <div class="wordmark-icon"></div>
+        <span class="wordmark-text">KLARA OS</span>
+      </div>
+      <h1>Healthcare Navigation<br><span>Operating System</span></h1>
+      <p class="header-sub">A four-layer intelligence architecture designed to resolve healthcare access failure across Nova Scotia — routing citizens to the right care pathway before they enter the system incorrectly.</p>
+    </div>
+    <div class="header-meta">
+      <span class="meta-badge">Architecture Overview</span>
+      <span class="meta-badge">Government Briefing</span>
+      <p class="meta-jurisdiction">Nova Scotia Health Authority<br>Province of Nova Scotia, Canada</p>
+    </div>
+  </header>
+
+  <!-- ─── PIPELINE ─── -->
+  <section class="pipeline-section">
+    <div class="section-label">Core System Pipeline</div>
+    <h2>How KLARA Routes Every Patient</h2>
+    <p style="font-size:14px;color:var(--text-dim);max-width:620px;">Every patient interaction passes through a deterministic seven-stage pipeline. Each stage refines the clinical picture until a safe, capacity-aware care recommendation is issued.</p>
+    <p style="font-size:14px;color:var(--text-dim);max-width:680px;margin-top:10px;">The pipeline begins with conversational symptom intake through KLARA, which builds a structured NavigationContext profile before optimization routing determines the most appropriate care pathway. KLARA combines conversational clinical intake with optimization-based routing to guide patients to the most appropriate care pathway.</p>
+
+    <div class="pipeline-row">
+      <div class="pipeline-step" style="--i:0">
+        <div class="step-node active">Conversational Intake</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="pipeline-step" style="--i:1">
+        <div class="step-node">Symptom Parsing</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="pipeline-step" style="--i:2">
+        <div class="step-node">Risk Classification</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="pipeline-step" style="--i:3">
+        <div class="step-node">Provincial Context Analysis</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="pipeline-step" style="--i:4">
+        <div class="step-node">Capacity-Aware Routing</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="pipeline-step" style="--i:5">
+        <div class="step-node">Care Recommendation</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="pipeline-step" style="--i:6">
+        <div class="step-node active">Structured Intake Output</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── ARCHITECTURE LAYERS ─── -->
+  <section class="architecture">
+    <div class="section-label">System Architecture</div>
+    <h2>Four-Layer Operating System Design</h2>
+    <p style="font-size:14px;color:var(--text-dim);max-width:680px;margin-bottom:8px;">KLARA OS is engineered as a layered platform — separating citizen interfaces, navigation intelligence, system integration, and provincial infrastructure into distinct, interoperable layers. Each layer is independently scalable and replaceable without disrupting the system.</p>
+
+    <div class="arch-stack">
+
+      <!-- LAYER 1 -->
+      <div class="layer-card">
+        <div class="layer-header">
+          <div class="layer-num">LAYER 01</div>
+          <div class="layer-title-group">
+            <div class="layer-title">User Interaction Layer</div>
+            <div class="layer-subtitle">Citizens · Clinicians · Administrators</div>
+          </div>
+          <div class="layer-badge">Interface Surface</div>
+        </div>
+        <div class="layer-body">
+          <div class="layer-description">
+            <p>The User Interaction Layer is the public face of KLARA OS — the surface through which citizens, clinicians, and system administrators engage with the platform. It is deliberately designed to be the simplest layer for end users while masking the complexity of the intelligence engine operating beneath it.</p>
+            <p>Citizens interact through a structured intake interface that guides them through symptom and situation input without requiring medical literacy. Administrators access a real-time system dashboard monitoring routing volumes, care pathway utilization, and escalation flags. Clinicians receive pre-structured intake summaries generated by the navigation engine, reducing intake friction and improving triage efficiency.</p>
+            <p>All interactions from this layer are passed downward as structured signals to the Navigation Intelligence Engine. The interface generates no decisions — it only captures, displays, and communicates.</p>
+          </div>
+          <div class="components-panel">
+            <div class="components-label">Core Components</div>
+            <div class="components-grid">
+              <div class="component-tag">Patient Intake Interface</div>
+              <div class="component-tag">Care Pathway Display Console</div>
+              <div class="component-tag">Administrator System Dashboard</div>
+              <div class="component-tag">Clinician Intake Summary View</div>
+              <div class="component-tag">Multilingual Accessibility Layer</div>
+              <div class="component-tag">Escalation Notification System</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layer-connector">
+        <div class="connector-line"></div>
+        <span class="connector-label">↓ Structured Patient Signals</span>
+      </div>
+
+      <!-- LAYER 2 -->
+      <div class="layer-card">
+        <div class="layer-header">
+          <div class="layer-num">LAYER 02</div>
+          <div class="layer-title-group">
+            <div class="layer-title">Navigation Intelligence Engine</div>
+            <div class="layer-subtitle">Agentic RAG Intake · NavigationContext · Optimization Routing</div>
+          </div>
+          <div class="layer-badge">Core Intelligence</div>
+        </div>
+        <div class="layer-body">
+          <div class="layer-description">
+            <p>The Navigation Intelligence Engine is the cognitive core of KLARA OS. It is the component that distinguishes this platform from a simple information tool — this layer makes decisions. It does not diagnose medical conditions; it classifies navigation risk and determines the most appropriate healthcare entry point for each individual patient.</p>
+            <p>Incoming patient signals are first processed by the Intake Processor, which structures and normalizes raw input. The Symptom Parsing System interprets the language of patient-reported concerns against a curated clinical navigation vocabulary. The Risk Classification Engine then assigns a triage-relevant risk tier — from self-care guidance through to emergency escalation — based on symptom patterns, urgency signals, and contextual flags.</p>
+            <p>The Healthcare Routing Engine applies provincial system awareness to convert a risk classification into a specific, actionable pathway. Capacity-aware routing logic queries real-time availability data from Layer 3 to avoid routing patients to saturated facilities. The Structured Output Generator produces a clinician-ready intake summary that accompanies the patient through their care journey.</p>
+          </div>
+          <div class="components-panel">
+            <div class="components-label">Core Components</div>
+            <div class="components-grid">
+              <div class="component-tag">Patient Intake Processor</div>
+              <div class="component-tag">Symptom Parsing System</div>
+              <div class="component-tag">Risk Classification Engine</div>
+              <div class="component-tag">Healthcare Routing Engine</div>
+              <div class="component-tag">Capacity-Aware Routing Logic</div>
+              <div class="component-tag">Structured Output Generator</div>
+              <div class="component-tag">Escalation Override Protocol</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layer-connector">
+        <div class="connector-line"></div>
+        <span class="connector-label">↓ Routing Queries · Real-Time Capacity Reads</span>
+      </div>
+
+      <!-- LAYER 3 -->
+      <div class="layer-card">
+        <div class="layer-header">
+          <div class="layer-num">LAYER 03</div>
+          <div class="layer-title-group">
+            <div class="layer-title">Healthcare System Integration Layer</div>
+            <div class="layer-subtitle">EMR · Telehealth · Provincial Records · Pharmacy</div>
+          </div>
+          <div class="layer-badge">Integration Fabric</div>
+        </div>
+        <div class="layer-body">
+          <div class="layer-description">
+            <p>The Integration Layer is the connective tissue between KLARA OS and Nova Scotia's existing digital health ecosystem. KLARA does not replace any of these systems — it orchestrates them. By reading from and writing to established provincial platforms, KLARA enhances existing infrastructure without displacing the clinical workflows that health professionals already depend on.</p>
+            <p>Integration with OPOR (One Person One Record) allows KLARA to contextualize navigation decisions against a patient's existing health record, identifying active conditions, prior ED visits, and medication profiles that influence routing priority. VirtualCareNS integration enables the routing engine to present telehealth as a live care option when appropriate — with availability confirmed before the recommendation is issued.</p>
+            <p>EMR integrations with Med Access and Accuro allow structured intake summaries to be delivered directly into clinician workflows. The DIS/SHARE medication layer prevents routing patients to pathways that may create unsafe medication interactions. Rural partner clinic networks are integrated as routable care nodes, expanding the system's coverage beyond urban centres.</p>
+          </div>
+          <div class="components-panel">
+            <div class="components-label">Integration Points</div>
+            <div class="components-grid">
+              <div class="component-tag">OPOR — One Person One Record</div>
+              <div class="component-tag">VirtualCareNS Telehealth</div>
+              <div class="component-tag">Med Access EMR</div>
+              <div class="component-tag">Accuro EMR</div>
+              <div class="component-tag">DIS / SHARE Medication Systems</div>
+              <div class="component-tag">Rural Partner Clinic Networks</div>
+              <div class="component-tag">NS Health Capacity API</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layer-connector">
+        <div class="connector-line"></div>
+        <span class="connector-label">↓ Routed Patients · Intake Packages</span>
+      </div>
+
+      <!-- LAYER 4 -->
+      <div class="layer-card">
+        <div class="layer-header">
+          <div class="layer-num">LAYER 04</div>
+          <div class="layer-title-group">
+            <div class="layer-title">Provincial Health Infrastructure Layer</div>
+            <div class="layer-subtitle">Emergency · Urgent Care · Primary · Pharmacy · Telehealth</div>
+          </div>
+          <div class="layer-badge">Care Delivery</div>
+        </div>
+        <div class="layer-body">
+          <div class="layer-description">
+            <p>The Provincial Health Infrastructure Layer represents the physical and virtual care delivery endpoints that KLARA OS routes patients toward. This layer is not managed by KLARA — it is served by KLARA. These are the hospitals, clinics, telehealth platforms, and pharmacies that form Nova Scotia's healthcare system.</p>
+            <p>KLARA's routing intelligence exists specifically to ensure that each of these nodes receives the right patient at the right time — reducing unnecessary emergency department presentations, distributing care demand across primary and urgent care centres, and activating telehealth pathways for patients who do not require in-person attendance.</p>
+            <p>By functioning as a pre-entry navigation system, KLARA reduces the administrative burden on front-line staff, improves throughput at high-pressure facilities, and ensures that citizens without a family physician can still access appropriate, directed care rather than defaulting to emergency services.</p>
+          </div>
+          <div class="components-panel">
+            <div class="components-label">Care Delivery Nodes</div>
+            <div class="components-grid">
+              <div class="component-tag">Emergency Departments</div>
+              <div class="component-tag">Urgent Treatment Centres</div>
+              <div class="component-tag">Primary Care Clinics</div>
+              <div class="component-tag">Pharmacy Prescribing Services</div>
+              <div class="component-tag">Telehealth / Virtual Care</div>
+              <div class="component-tag">Mental Health Access Points</div>
+              <div class="component-tag">Community Health Centres</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── NARRATIVE ─── -->
+  <section class="narrative-section">
+    <div class="narrative-block primary">
+      <h3>Why KLARA Is an Operating System, Not an Application</h3>
+      <p>A typical healthcare application solves one problem for one user type. KLARA OS solves a systemic problem for the entire provincial health system. It functions as an operating system because it orchestrates multiple underlying platforms, manages real-time state across the care network, and serves as the intelligent coordination layer between citizens and healthcare infrastructure.</p>
+      <p>Just as a computer operating system manages the relationship between hardware resources and user requests, KLARA manages the relationship between care capacity and patient demand — ensuring every request is routed to the most appropriate resource at the right time.</p>
+      <p>It is not owned by a single department. It is not a portal. It is not a chatbot. It is provincial health infrastructure.</p>
+    </div>
+    <div class="narrative-block secondary">
+      <h3>What KLARA Changes for Nova Scotia</h3>
+      <p>Nova Scotia faces a specific and well-documented access problem: emergency departments absorb non-emergency demand, primary care waitlists are years long, and patients without a family physician have no reliable navigation mechanism.</p>
+      <p>KLARA addresses the root cause — the absence of an intelligent first-contact routing layer — rather than adding capacity to a system already under strain. By intercepting patients before they enter the wrong door, KLARA simultaneously reduces ED overcrowding, improves access equity for unattached patients, and produces structured intake data that improves system planning at the provincial level.</p>
+      <p>The system is built to enhance what Nova Scotia has already invested in — OPOR, VirtualCareNS, EMR platforms — rather than compete with them.</p>
+    </div>
+  </section>
+
+  <!-- ─── IMPACT ─── -->
+  <section class="impact-section">
+    <div class="section-label">System Design Objectives</div>
+    <h2>What the Architecture Is Built to Deliver</h2>
+    <div class="impact-grid">
+      <div class="impact-card">
+        <span class="impact-num">↓ ED</span>
+        <div class="impact-label">Reduce unnecessary emergency department presentations</div>
+      </div>
+      <div class="impact-card">
+        <span class="impact-num">100%</span>
+        <div class="impact-label">Coverage for patients without a family physician</div>
+      </div>
+      <div class="impact-card">
+        <span class="impact-num">Real-Time</span>
+        <div class="impact-label">Capacity-aware routing prevents routing to saturated facilities</div>
+      </div>
+      <div class="impact-card">
+        <span class="impact-num">Unified</span>
+        <div class="impact-label">Single navigation intelligence layer across all provincial care types</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <div class="footer-left">KLARA OS — Architecture Overview v1.0</div>
+    <div class="footer-right"><span class="status-dot"></span>Nova Scotia Health — Navigation Intelligence Platform</div>
+  </footer>
+
+</div>
+</body>
+</html>

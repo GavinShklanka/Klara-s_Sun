@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patient Care Pathway — Nova Scotia 2023–24</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #f5f5f3;
+    color: #1a1a1a;
+    padding: 40px 24px;
+  }
+
+  .page { max-width: 860px; margin: 0 auto; }
+
+  /* HEADER */
+  .header {
+    margin-bottom: 32px;
+  }
+
+  .header .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 6px;
+  }
+
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: #1a1a1a;
+  }
+
+  /* KPI ROW */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .kpi {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px 18px;
+    border-top: 4px solid;
+  }
+
+  .kpi.blue  { border-color: #2563eb; }
+  .kpi.red   { border-color: #dc2626; }
+  .kpi.amber { border-color: #d97706; }
+  .kpi.teal  { border-color: #0d9488; }
+
+  .kpi-label {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+
+  .kpi-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .kpi.blue  .kpi-value { color: #2563eb; }
+  .kpi.red   .kpi-value { color: #dc2626; }
+  .kpi.amber .kpi-value { color: #d97706; }
+  .kpi.teal  .kpi-value { color: #0d9488; }
+
+  /* FLOW */
+  .flow-section {
+    background: #fff;
+    border-radius: 8px;
+    padding: 28px 24px;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 20px;
+  }
+
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .flow-node {
+    flex: 1;
+    background: #f9f9f7;
+    border-radius: 6px;
+    padding: 16px 14px;
+    text-align: center;
+    border: 1px solid #e8e8e4;
+  }
+
+  .flow-node .node-label {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .flow-node .node-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a1a1a;
+  }
+
+  .flow-node .node-sub {
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 3px;
+  }
+
+  .flow-arrow {
+    width: 36px;
+    text-align: center;
+    font-size: 18px;
+    color: #ccc;
+    flex-shrink: 0;
+  }
+
+  /* SPLIT SECTION */
+  .split-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .split-card {
+    border-radius: 8px;
+    padding: 20px 20px;
+    border: 1px solid;
+  }
+
+  .split-card.urgent {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+  }
+
+  .split-card.nonurgent {
+    background: #fef2f2;
+    border-color: #fecaca;
+  }
+
+  .split-title {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .split-card.urgent .split-title { color: #059669; }
+  .split-card.nonurgent .split-title { color: #dc2626; }
+
+  .split-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+
+  .split-card.urgent .split-num { color: #059669; }
+  .split-card.nonurgent .split-num { color: #dc2626; }
+
+  .split-sub {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 12px;
+  }
+
+  .pathway-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .pathway-list li {
+    font-size: 12px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-green { background: #059669; }
+  .dot-red   { background: #dc2626; }
+  .dot-teal  { background: #0d9488; }
+
+  /* LWBS ROW */
+  .lwbs-box {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-left: 4px solid #d97706;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .lwbs-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: #d97706;
+    flex-shrink: 0;
+  }
+
+  .lwbs-text {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.6;
+  }
+
+  .lwbs-text strong { color: #1a1a1a; }
+
+  /* SOURCE FOOTER */
+  .sources {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px 24px;
+    border: 1px solid #e8e8e4;
+  }
+
+  .sources-title {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #999;
+    margin-bottom: 14px;
+  }
+
+  .source-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0ec;
+    align-items: flex-start;
+  }
+
+  .source-item:last-child { border-bottom: none; }
+
+  .source-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #2563eb;
+    flex-shrink: 0;
+    width: 20px;
+    margin-top: 1px;
+  }
+
+  .source-text {
+    font-size: 12px;
+    color: #555;
+    line-height: 1.5;
+  }
+
+  .source-text a {
+    color: #2563eb;
+    text-decoration: none;
+  }
+
+  .source-text a:hover { text-decoration: underline; }
+
+  .source-tag-inline {
+    display: inline-block;
+    background: #f0f0ff;
+    color: #2563eb;
+    font-size: 10px;
+    padding: 1px 7px;
+    border-radius: 3px;
+    margin-left: 4px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="eyebrow">Nova Scotia Health · 2023–24</div>
+    <h1>Patient Care Pathway Routing</h1>
+  </div>
+
+  <!-- KPI ROW -->
+  <div class="kpi-row">
+    <div class="kpi blue">
+      <div class="kpi-label">Total ED Visits (NSH)</div>
+      <div class="kpi-value">519,310</div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-label">Non-Urgent Cases (CTAS 4–5)</div>
+      <div class="kpi-value">35%</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">Left Without Being Seen</div>
+      <div class="kpi-value">52,521</div>
+    </div>
+    <div class="kpi teal">
+      <div class="kpi-label">Unattached Patients (No GP)</div>
+      <div class="kpi-value">139,359</div>
+    </div>
+  </div>
+
+  <!-- FLOW -->
+  <div class="flow-section">
+    <div class="section-title">Patient Flow</div>
+    <div class="flow">
+      <div class="flow-node">
+        <div class="node-label">Entry</div>
+        <div class="node-value">561,139</div>
+        <div class="node-sub">NSH + IWK patients</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        <div class="node-label">Triage</div>
+        <div class="node-value">CTAS 1–5</div>
+        <div class="node-sub">Assessed by urgency</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        <div class="node-label">Urgent (65%)</div>
+        <div class="node-value">337,552</div>
+        <div class="node-sub">CTAS 1–3 · ED treatment</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="background:#fef2f2;border-color:#fecaca;">
+        <div class="node-label" style="color:#dc2626;">Non-Urgent (35%)</div>
+        <div class="node-value" style="color:#dc2626;">181,758</div>
+        <div class="node-sub">CTAS 4–5 · Could go elsewhere</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPLIT CARDS -->
+  <div class="split-row">
+
+    <div class="split-card urgent">
+      <div class="split-title">✅ Urgent — Right Place</div>
+      <div class="split-num">337,552</div>
+      <div class="split-sub">65% of visits · CTAS Level 1–3</div>
+      <ul class="pathway-list">
+        <li><div class="dot dot-green"></div>Resuscitation (Level 1)</li>
+        <li><div class="dot dot-green"></div>Emergent (Level 2)</li>
+        <li><div class="dot dot-green"></div>Urgent (Level 3)</li>
+        <li><div class="dot dot-green"></div>ED is the correct destination</li>
+      </ul>
+    </div>
+
+    <div class="split-card nonurgent">
+      <div class="split-title">🔴 Non-Urgent — Wrong Door</div>
+      <div class="split-num">181,758</div>
+      <div class="split-sub">35% of visits · CTAS Level 4–5</div>
+      <ul class="pathway-list">
+        <li><div class="dot dot-teal"></div>Could go to walk-in clinic</li>
+        <li><div class="dot dot-teal"></div>Could use virtual care</li>
+        <li><div class="dot dot-teal"></div>Could visit pharmacy</li>
+        <li><div class="dot dot-red"></div>No navigation system existed</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- LWBS -->
+  <div class="lwbs-box">
+    <div class="lwbs-num">52,521</div>
+    <div class="lwbs-text">
+      <strong>Patients left without being seen (LWBS)</strong> — 10.02% of all NSH visits.<br>
+      These patients waited, gave up, and left with their condition unresolved.
+    </div>
+  </div>
+
+  <!-- SOURCES -->
+  <div class="sources">
+    <div class="sources-title">Data Sources</div>
+
+    <div class="source-item">
+      <div class="source-num">[1]</div>
+      <div class="source-text">
+        519,310 NSH visits · 41,829 IWK visits · CTAS split (65%/35%) · LWBS 52,521 (10.02%) · IWK LWBS 2,080 (5.0%)<br>
+        <strong>NS Dept. of Health & Wellness</strong> — Emergency Departments Accountability Report, Apr 2023 – Mar 2024 · Pages 8, 9, 11
+        <span class="source-tag-inline">Official</span><br>
+        <a href="https://novascotia.ca/dhw/publications/emergency-departments-accountability-report-2023-24.pdf" target="_blank">→ novascotia.ca/dhw/publications/emergency-departments-accountability-report-2023-24.pdf</a>
+      </div>
+    </div>
+
+    <div class="source-item">
+      <div class="source-num">[2]</div>
+      <div class="source-text">
+        139,359 unattached patients (no family doctor) by zone — Central 74,318 · Western 26,124 · Northern 24,106 · Eastern 14,811<br>
+        <strong>Nova Scotia Health</strong> — NAFP Registry, December 2023
+        <span class="source-tag-inline">Official</span><br>
+        <a href="https://data.novascotia.ca" target="_blank">→ data.novascotia.ca</a> · File: Accessing_Primary_Care_in_Nova_Scotia_20260305.csv
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://klara.nshealth.ca/schemas/optimization-output.json",
+  "title": "KLARA Routing Optimization Output",
+  "description": "Output of the Gurobi/PuLP routing optimization model, for API responses and map visualization.",
+  "type": "object",
+  "required": ["primary_pathway", "options", "optimizer"],
+  "properties": {
+    "primary_pathway": {
+      "type": "string",
+      "description": "Pathway ID selected as the primary recommendation",
+      "enum": ["virtualcarens", "pharmacy", "primarycare", "urgent", "811", "emergency", "mental_health", "community_health"]
+    },
+    "reason": {
+      "type": "string",
+      "description": "Human-readable explanation of the routing decision"
+    },
+    "options": {
+      "type": "array",
+      "description": "Ordered list of pathway IDs: primary first, then alternatives",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "care_sequence": {
+      "type": "array",
+      "description": "Optional ordered care stages (e.g. VirtualCareNS → Lab → Specialist). When present, first element must equal primary_pathway.",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "optimizer": {
+      "type": "object",
+      "description": "Solver metadata and cost/ranking data for visualization",
+      "required": ["solver", "status", "primary", "pathway_ranking"],
+      "properties": {
+        "solver": {
+          "type": "string",
+          "enum": ["gurobi", "pulp", "rule", "bypass"],
+          "description": "Solver used: gurobi, pulp, rule fallback, or bypass (e.g. emergency → 811)"
+        },
+        "status": {
+          "type": "string",
+          "description": "Solver status (e.g. optimal, gurobi_2, rule_fallback, emergency_hitl_811)"
+        },
+        "solve_time_ms": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Solve time in milliseconds"
+        },
+        "objective_value": {
+          "type": "number",
+          "description": "Cost value of the chosen pathway (minimized)"
+        },
+        "pathway_costs": {
+          "type": "object",
+          "additionalProperties": { "type": "number" },
+          "description": "Pathway ID → cost (for charts and ranking)"
+        },
+        "pathway_ranking": {
+          "type": "array",
+          "description": "Pathway IDs in order of preference (best first), for display and map layers",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "region": {
+      "type": "string",
+      "description": "Patient region for map context (e.g. Halifax, Cape Breton)"
+    },
+    "pathway_urls": {
+      "type": "object",
+      "description": "Pathway ID → service info for map links and labels",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "register_url": { "type": "string", "format": "uri" }
+        }
+      }
+    },
+    "locations": {
+      "type": "array",
+      "description": "Optional: service locations for map visualization (from /api/nearby or pathway_urls)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pathway_id": { "type": "string" },
+          "name": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "type": { "type": "string", "enum": ["finder", "list", "service", "info"] },
+          "lat": { "type": "number", "description": "Optional: latitude for map pin" },
+          "lon": { "type": "number", "description": "Optional: longitude for map pin" }
+        }
+      }
+    },
+    "session_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Session ID for linking to intake and map state"
+    }
+  }
+}

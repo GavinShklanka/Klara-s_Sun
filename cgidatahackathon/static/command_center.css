@@ -1,0 +1,212 @@
+/* Command Center — Provincial Operations. Reads existing API data only. */
+:root {
+    --cc-primary: #1f4f82;
+    --cc-secondary: #3a78b4;
+    --cc-bg: #f6f9fc;
+    --cc-card: #ffffff;
+    --cc-border: #dbe6f2;
+    --cc-text: #1c2a39;
+    --cc-muted: #6b7c8f;
+}
+
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    background: var(--cc-bg);
+    color: var(--cc-text);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.command-center {
+    padding: 30px;
+    background: var(--cc-bg);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.cc-data-note {
+    font-size: 12px;
+    color: var(--cc-muted);
+    margin: 0 0 20px 0;
+}
+
+.cc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.cc-card {
+    background: var(--cc-card);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--cc-border);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.cc-card h3 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--cc-primary);
+}
+
+.cc-map-wrap {
+    width: 100%;
+    height: 280px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #eef5fb;
+}
+
+.cc-chart-wrap {
+    width: 100%;
+    height: 220px;
+    position: relative;
+}
+
+.cc-table-wrap {
+    overflow-x: auto;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.cc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.cc-table th,
+.cc-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--cc-border);
+}
+
+.cc-table th {
+    background: var(--cc-bg);
+    color: var(--cc-primary);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+}
+
+.cc-table tbody tr:hover {
+    background: rgba(58, 120, 180, 0.04);
+}
+
+.cc-header {
+    background: var(--cc-card);
+    border-bottom: 1px solid var(--cc-border);
+    padding: 16px 24px;
+}
+
+.cc-header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.cc-logo {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--cc-primary);
+}
+
+.cc-nav {
+    display: flex;
+    gap: 20px;
+}
+
+.cc-nav a {
+    color: var(--cc-secondary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.cc-nav a:hover {
+    text-decoration: underline;
+}
+
+.cc-footer {
+    margin-top: 32px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--cc-border);
+    font-size: 12px;
+    color: var(--cc-muted);
+    text-align: center;
+}
+
+/* Scenario simulation (Phase 9) */
+.cc-scenario-card {
+    grid-column: 1 / -1;
+}
+.cc-scenario-desc {
+    font-size: 12px;
+    color: var(--cc-muted);
+    margin: 0 0 12px 0;
+}
+.cc-scenario-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    margin-bottom: 16px;
+}
+.cc-scenario-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.cc-scenario-row label {
+    font-weight: 500;
+    color: var(--cc-text);
+}
+.cc-scenario-input {
+    padding: 6px 10px;
+    border: 1px solid var(--cc-border);
+    border-radius: 6px;
+    font-size: 13px;
+    min-width: 140px;
+}
+.cc-scenario-btn {
+    padding: 8px 14px;
+    background: var(--cc-secondary);
+    color: #fff;
+    border: 0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+.cc-scenario-btn:hover {
+    background: var(--cc-primary);
+}
+.cc-scenario-hint {
+    font-size: 12px;
+    color: var(--cc-muted);
+}
+.cc-scenario-result {
+    padding: 12px;
+    background: var(--cc-bg);
+    border-radius: 8px;
+    border: 1px solid var(--cc-border);
+    font-size: 13px;
+    min-height: 60px;
+}
+.cc-scenario-output ul {
+    margin: 8px 0 0 0;
+    padding-left: 20px;
+}
+.cc-scenario-error {
+    color: #c62828;
+    margin: 0;
+}

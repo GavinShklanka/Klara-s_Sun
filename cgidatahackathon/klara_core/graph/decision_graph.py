@@ -17,6 +17,7 @@ from klara_core.risk_engine import risk_score
 from klara_core.provincial_context import load_provincial_context
 from klara_core.agentic_rag import retrieve_rag_context
 from klara_core.eligibility_engine import resolve_pathway_eligibility
+from klara_core.policy_engine import evaluate_policies
 from klara_core.routing_engine import route_care
 from klara_core.summary_builder import build_summary
 from klara_core.navigation_context import (
@@ -81,6 +82,13 @@ def run_decision_pipeline(
             prov_ctx["available_pathways"],
         )
         stages.append("eligibility_engine")
+        policy_output = evaluate_policies(
+            risk_output["level"],
+            region,
+            ["811", "urgent"],
+            prov_ctx.get("capacity_snapshot"),
+            parsed["symptoms"],
+        )
         stages.append("routing_engine")
         stages.append("optimization")
         routing_output = route_care(
@@ -91,6 +99,7 @@ def run_decision_pipeline(
             symptoms=parsed["symptoms"],
             complaint_text=parsed["text"],
             duration_hours=parsed["duration_hours"],
+            policy_context=policy_output,
         )
         rag_context = retrieve_rag_context(parsed["text"], parsed["symptoms"], symptom_selections)
     else:
@@ -105,6 +114,15 @@ def run_decision_pipeline(
         stages.append("eligibility_engine")
         eligible_pathways = [p["pathway_id"] for p in pathway_eligibility if p["eligible"]]
 
+        # ── Policy governance (after eligibility, before routing) ──
+        policy_output = evaluate_policies(
+            risk_output["level"],
+            region,
+            eligible_pathways,
+            prov_ctx.get("capacity_snapshot"),
+            parsed["symptoms"],
+        )
+
         # ── Stage 4: Routing (includes optimization internally) ──
         stages.append("routing_engine")
         stages.append("optimization")
@@ -116,6 +134,7 @@ def run_decision_pipeline(
             symptoms=parsed["symptoms"],
             complaint_text=parsed["text"],
             duration_hours=parsed["duration_hours"],
+            policy_context=policy_output,
         )
 
     # Human-in-loop: Replace emergency with 811

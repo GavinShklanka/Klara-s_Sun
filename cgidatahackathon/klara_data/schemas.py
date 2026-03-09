@@ -48,10 +48,15 @@ class RoutingRecommendation(BaseModel):
     Valid primary_pathway values:
       emergency, urgent, primarycare, pharmacy, virtualcarens,
       mental_health, community_health
+
+    care_sequence: optional ordered list of stages (e.g. VirtualCareNS → Lab → Specialist).
+    When present, primary_pathway must equal care_sequence[0]. When absent, treat as single-step.
     """
     primary_pathway: str
     reason: str
     options: List[str]
+    care_sequence: Optional[List[str]] = None  # e.g. ["virtualcarens", "lab_test", "cardiology"]
+    policy: Optional[dict] = None  # governance: { "applied": [], "notes": [] }
 
 
 class FrontendAlternative(BaseModel):
@@ -151,3 +156,4 @@ class AssessResponse(BaseModel):
     pathway_urls: Optional[dict] = None  # pathway_id -> PathwayUrl for clickable NS service links
     pipeline_stages: Optional[List[str]] = None  # stage IDs for UI decision graph visualization
     optimization_explanation: Optional[str] = None  # "Why this route was selected"
+    system_impact: Optional[dict] = None  # er_visits_avoided, cost_savings_estimate, system_strain_score

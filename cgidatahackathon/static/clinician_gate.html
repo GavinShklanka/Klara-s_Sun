@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinician Access — KLARA OS</title>
+    <link rel="stylesheet" href="/static/clinician_gate.css">
+</head>
+<body>
+    <div class="gate-bg"></div>
+    <main class="clinician-gate" role="main">
+        <div class="gate-card card">
+            <div class="gate-logo" aria-hidden="true">
+                <span class="gate-logo-text">KLARA<span class="gate-logo-accent">OS</span></span>
+            </div>
+            <h1 class="gate-title">Clinician Access</h1>
+            <p class="gate-desc">Secure access to Klara Command Center. Enter your access key to continue.</p>
+            <form id="clinician-gate-form" class="gate-form" novalidate>
+                <label for="clinician-password" class="gate-label">Access key</label>
+                <input
+                    type="password"
+                    id="clinician-password"
+                    class="gate-input"
+                    placeholder="Enter clinician access key"
+                    autocomplete="off"
+                    aria-describedby="gate-hint"
+                />
+                <p id="gate-hint" class="gate-hint">Demo: use provided key. In production this is replaced by OAuth / provincial identity.</p>
+                <button type="submit" class="gate-btn" id="gate-submit">Enter Command Center</button>
+            </form>
+            <p class="gate-footer"><a href="/">← Patient view</a></p>
+        </div>
+    </main>
+    <script src="/static/clinician_gate.js"></script>
+</body>
+</html>

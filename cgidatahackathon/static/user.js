@@ -23,43 +23,65 @@
 
     const REGIONS = ['Halifax', 'Cape Breton', 'South Shore', 'Annapolis Valley', 'Truro / Colchester', 'Northern (Rural)'];
 
-    // Route explanation per pathway (how this option was chosen; no technical jargon for UX)
+    // Clinical triage language only — no directive or diagnostic wording
     const ROUTE_EXPLANATIONS = {
         pharmacy: {
-            intro: 'Your symptoms and location were matched to pharmacy capacity. This pathway was selected because it best fits your need while keeping pressure off urgent and emergency care.',
-            howItHelps: 'Using pharmacy for appropriate care helps emergency departments stay available for life-threatening situations. The system chose this as the best fit from your available options.',
+            intro: 'Based on the information currently available, a pharmacy may be an appropriate next step for your concern.',
+            howItHelps: 'A pharmacist can provide additional assessment and, where appropriate, support minor ailments. Further assessment by a clinician may be helpful if your symptoms change.',
             actionLabel: 'Find a pharmacy near you',
         },
         virtualcarens: {
-            intro: 'Your situation was matched to virtual care availability. This pathway was selected so you can get timely care online while freeing in-person capacity for those who need it most.',
-            howItHelps: 'Virtual care reduces strain on physical clinics and emergency departments. The system identified this as the right fit for your needs and current capacity.',
-            actionLabel: 'Go to VirtualCareNS',
+            intro: 'Based on the information currently available, virtual care may be an option. Further assessment may be helpful to clarify the most appropriate next step.',
+            howItHelps: 'Virtual care can offer timely access to a clinician. A nurse or physician can ask additional questions and help determine whether in-person evaluation may be required.',
+            actionLabel: 'Visit VirtualCareNS',
         },
         community_health: {
-            intro: 'Your needs were matched to community health capacity. The system connects you to a feasible care location based on where services are available and how care is allocated across the province.',
-            howItHelps: 'Community health centres are part of how Nova Scotia balances demand and capacity. Your route was chosen to connect you to the right level of care and ease strain on the emergency pipeline.',
+            intro: 'Based on the information currently available, a community health centre may be an appropriate option in your area.',
+            howItHelps: 'Community health centres offer a range of services. A clinician there can help determine the appropriate next step for your situation.',
             actionLabel: 'Find a community health centre near you',
         },
         primarycare: {
-            intro: 'Your symptoms and location were matched to primary care capacity. This pathway was selected as the best fit for ongoing or non-urgent care.',
-            howItHelps: 'Using primary care when appropriate helps keep emergency departments for true emergencies. The system chose this option based on your needs and availability.',
+            intro: 'Based on the information currently available, primary care may be an appropriate next step for ongoing or follow-up concerns.',
+            howItHelps: 'A physician or nurse practitioner can provide further assessment. Clinical evaluation may be required to clarify the best next step.',
             actionLabel: 'Find a physician or clinic',
         },
         urgent: {
-            intro: 'Your situation was matched to urgent treatment capacity. This pathway was selected so you receive timely in-person care without using the emergency department.',
-            howItHelps: 'Urgent treatment centres are designed for conditions that need same-day care but are not life-threatening. This choice helps keep the ED ready for critical cases.',
+            intro: 'Based on the information currently available, same-day evaluation at an urgent treatment centre may be appropriate.',
+            howItHelps: 'Urgent treatment centres provide in-person assessment for concerns that may need same-day attention. A clinician can help determine whether additional care is needed.',
             actionLabel: 'Find an urgent treatment centre',
         },
         '811': {
-            intro: 'Your situation was identified as needing nurse triage. This pathway connects you to 811 so a clinician can direct you to the right level of care.',
-            howItHelps: '811 ensures that only those who truly need emergency care are directed there. The system routes you here for your safety and to support the broader care pipeline.',
+            intro: 'Based on the information currently available, further triage assessment is recommended. A registered nurse at 811 can ask additional clinical questions.',
+            howItHelps: 'A nurse at 811 can help determine the appropriate next step, including whether urgent care or emergency department evaluation may be required. This triage review is recommended before seeking in-person care.',
             actionLabel: 'Call or visit 811 Nova Scotia',
         },
         mental_health: {
-            intro: 'Your needs were matched to mental health and addictions services. This pathway was selected to connect you with the right supports.',
-            howItHelps: 'Dedicated mental health pathways help you get appropriate care and reduce pressure on general emergency and urgent services.',
+            intro: 'Based on the information currently available, mental health and addictions services may be an appropriate option.',
+            howItHelps: 'Dedicated services can provide further assessment and support. A clinician can help clarify the most appropriate next step.',
             actionLabel: 'Mental health and addictions services',
         },
+    };
+
+    // Tags for routing cards — clinically neutral (avoid "urgent" unless triage confirms)
+    const PATHWAY_TAGS = {
+        '811': ['811', 'triage', 'clinical review'],
+        virtualcarens: ['virtual care', 'online'],
+        pharmacy: ['pharmacy', 'minor ailments'],
+        primarycare: ['primary care', 'family practice'],
+        community_health: ['community health'],
+        urgent: ['same-day', 'in-person assessment'],
+        mental_health: ['mental health', 'support'],
+    };
+
+    // Short clinical explanation for hero — triage language only (overrides backend reason in UI)
+    const CLINICAL_HERO_REASON = {
+        '811': 'Based on the information currently available, further triage assessment is recommended. A registered nurse at 811 can ask additional clinical questions and help determine whether urgent care or emergency department evaluation may be required.',
+        virtualcarens: 'Based on the information currently available, virtual care may be an option. A clinician can provide further assessment and help clarify the appropriate next step.',
+        pharmacy: 'Based on the information currently available, a pharmacy may be an appropriate next step. A pharmacist can provide additional assessment for minor ailments.',
+        primarycare: 'Based on the information currently available, primary care may be an appropriate next step. A physician or nurse practitioner can provide further assessment.',
+        community_health: 'Based on the information currently available, a community health centre may be an appropriate option. A clinician there can help determine the next step.',
+        urgent: 'Based on the information currently available, same-day evaluation at an urgent treatment centre may be appropriate. A clinician can help determine whether additional care is needed.',
+        mental_health: 'Based on the information currently available, mental health and addictions services may be an appropriate option. A clinician can help clarify the most appropriate next step.',
     };
 
     // Intake state (connection = additive for UX transparency; does not affect routing/compliance)
@@ -74,18 +96,18 @@
         connection: { locationPermission: 'unknown' },  // granted | denied | prompt | unknown
     };
 
-    // ── Conversation script (Klara-inspired: calm, observant, precise, professional) ──
+    // Conversation script — triage-appropriate language only
     const SCRIPT = {
         greeting: { from: 'klara', text: 'What brings you here today?' },
-        afterComplaint: { from: 'klara', text: 'Thank you. I will examine the available routes and determine the most efficient option for you. Are you already in our system?' },
-        joinPrompt: { from: 'klara', text: 'You will need to connect with your health card to continue. Click Join below.' },
+        afterComplaint: { from: 'klara', text: 'Thank you. Based on what you share, we can suggest possible next steps for care. Are you already in our system?' },
+        joinPrompt: { from: 'klara', text: 'Connecting with your health card is required to continue. Click Join below.' },
         afterJoin: { from: 'klara', text: 'I have noted your concerns.' },
         afterSymptoms: { from: 'klara', text: 'How long have you had these symptoms?' },
         afterDuration: { from: 'klara', text: 'Select your region:' },
         afterRegion: { from: 'klara', text: 'Are you on any medications we should know about?' },
         afterMeds: { from: 'klara', text: 'Any allergies to medications or other?' },
-        afterAllergies: { from: 'klara', text: 'That information is useful. Click Submit below when you are ready, or add anything else.' },
-        submitConfirm: { from: 'klara', text: 'I am submitting your intake now.' },
+        afterAllergies: { from: 'klara', text: 'That information is helpful. Click Submit below when you are ready, or add anything else.' },
+        submitConfirm: { from: 'klara', text: 'Submitting your intake for routing suggestions.' },
     };
 
     function esc(str) {
@@ -493,14 +515,16 @@
             }
             renderResults(data);
         } catch (e) {
-            appendBubble('klara', "I could not process that. Please try again.");
+            appendBubble('klara', "The request could not be completed. Please try again.");
             enableInput();
         }
     }
 
     function renderResults(data) {
-        document.getElementById('result-pathway').textContent = (data.pathway_urls?.[data.routing_recommendation.primary_pathway]?.name || data.routing_recommendation.primary_pathway);
-        document.getElementById('result-reason').textContent = data.routing_recommendation.reason;
+        var primary = data.routing_recommendation.primary_pathway;
+        document.getElementById('result-pathway').textContent = (data.pathway_urls?.[primary]?.name || primary);
+        var heroReason = CLINICAL_HERO_REASON[primary] || data.routing_recommendation.reason;
+        document.getElementById('result-reason').textContent = heroReason;
 
         const optionsList = document.getElementById('options-list');
         optionsList.innerHTML = '';
@@ -509,10 +533,11 @@
         for (const opt of data.routing_recommendation.options) {
             const info = pathwayUrls[opt] || { name: opt, url: '#' };
             const explain = ROUTE_EXPLANATIONS[opt] || {
-                intro: 'This pathway was selected based on your symptoms, location, and current capacity across the system.',
-                howItHelps: 'Choosing the right level of care helps keep emergency services available for those who need them most.',
+                intro: 'Based on the information currently available, this option may be an appropriate next step.',
+                howItHelps: 'Further assessment by a clinician may help clarify the most appropriate care.',
                 actionLabel: 'Learn more',
             };
+            const tags = PATHWAY_TAGS[opt] || ['routing'];
             const wrap = document.createElement('div');
             wrap.className = 'option-card-wrap';
             wrap.dataset.pathway = opt;
@@ -544,9 +569,11 @@
 
             const body = document.createElement('div');
             body.className = 'option-card-body';
+            var tagsHtml = (tags || []).map(function (t) { return '<span class="routing-tag">' + esc(t) + '</span>'; }).join('');
             body.innerHTML =
                 '<p class="option-route-intro">' + esc(explain.intro) + '</p>' +
                 '<p class="option-route-helps">' + esc(explain.howItHelps) + '</p>' +
+                (tagsHtml ? '<div class="routing-tags">' + tagsHtml + '</div>' : '') +
                 '<div class="option-card-actions"></div>';
             var actionUrl = gisUrlFallback;
             if (opt === 'virtualcarens' && info.url && info.url !== '#') actionUrl = info.url;
@@ -569,6 +596,9 @@
                 document.querySelectorAll('.option-link-btn').forEach(function (el) { el.classList.remove('selected'); });
                 btn.classList.add('selected');
                 submitRequestBtn.disabled = false;
+                if (typeof KlaraMap !== 'undefined' && KlaraMap.fitBoundsToCareSequence) {
+                    KlaraMap.fitBoundsToCareSequence(data.routing_recommendation?.care_sequence || []);
+                }
             });
             body.querySelector('.option-card-actions').appendChild(chooseBtn);
             wrap.appendChild(body);
@@ -591,18 +621,37 @@
             optPanel.style.display = 'none';
         }
 
-        // LP / Optimization panel — user-facing, non-technical
+        // LP / Optimization panel — Optimization Engine + transparency
         const optData = data.navigation_context?.routing_result?.optimizer || data.optimizer || {};
         const solver = optData.solver || 'rule';
         const status = optData.status || 'unknown';
         const objVal = optData.objective_value;
+        const solveTimeMs = optData.solve_time_ms;
+        const pathwayCosts = optData.pathway_costs || {};
         const ranking = optData.pathway_ranking || data.routing_recommendation?.options || [];
         const lpSolver = document.getElementById('lp-solver');
         const lpStatus = document.getElementById('lp-status');
         const lpObjective = document.getElementById('lp-objective');
-        if (lpSolver) lpSolver.textContent = 'Solver: ' + solver;
-        if (lpStatus) lpStatus.textContent = 'status=' + status;
+        const lpSolveTime = document.getElementById('lp-solve-time');
+        if (lpSolver) lpSolver.textContent = solver;
+        if (lpStatus) lpStatus.textContent = status;
         if (lpObjective) lpObjective.textContent = objVal != null ? objVal.toFixed(2) : '—';
+        if (lpSolveTime) lpSolveTime.textContent = solveTimeMs != null ? Number(solveTimeMs).toFixed(0) + ' ms' : '—';
+        var costBreakdownWrap = document.getElementById('lp-cost-breakdown-wrap');
+        var costBreakdownEl = document.getElementById('lp-cost-breakdown');
+        if (costBreakdownWrap && costBreakdownEl) {
+            var costs = Object.keys(pathwayCosts).length ? pathwayCosts : null;
+            if (costs) {
+                costBreakdownWrap.hidden = false;
+                var pathwayUrls = data.pathway_urls || {};
+                costBreakdownEl.innerHTML = Object.entries(costs).map(function (e) {
+                    var name = pathwayUrls[e[0]] && pathwayUrls[e[0]].name ? pathwayUrls[e[0]].name : e[0];
+                    return '<li>' + esc(name) + ' → ' + Number(e[1]).toFixed(2) + '</li>';
+                }).join('');
+            } else {
+                costBreakdownWrap.hidden = true;
+            }
+        }
         const rankHtml = ranking.map(function (p, i) {
             const names = data.pathway_urls?.[p]?.name || p;
             return '<span class="lp-pathway"><span class="lp-rank">' + (i + 1) + '.</span> ' + esc(names) + '</span>';
@@ -613,7 +662,7 @@
         const banner = document.getElementById('emergency-banner');
         if (data.risk_assessment?.level === 'emergency' || data.risk_assessment?.level === 'high') {
             banner.hidden = false;
-            document.getElementById('emergency-text').textContent = 'Call 811 for nurse triage. Do not go directly to ED—811 will direct you if needed.';
+            document.getElementById('emergency-text').textContent = 'Based on the information currently available, a nurse triage assessment is recommended. Call or visit 811. A registered nurse can ask additional clinical questions and help determine whether urgent care or emergency department evaluation may be required.';
         } else {
             banner.hidden = true;
         }
@@ -631,6 +680,114 @@
         submitRequestBtn.disabled = true;
         submitRequestBtn.textContent = 'Submit Request';
         state.chosenPathway = null;
+
+        // Care journey panel (timeline from care_sequence)
+        var careSequence = data.routing_recommendation?.care_sequence;
+        var timelineEl = document.getElementById('care-journey-timeline');
+        var journeyPanel = document.getElementById('care-journey-panel');
+        if (journeyPanel && timelineEl) {
+            if (careSequence && careSequence.length > 0) {
+                journeyPanel.style.display = 'block';
+                var pathwayUrls = data.pathway_urls || {};
+                timelineEl.innerHTML = careSequence.map(function (id, i) {
+                    var label = (pathwayUrls[id] && pathwayUrls[id].name) ? pathwayUrls[id].name : (id.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }));
+                    return '<li class="care-journey-step"><span class="care-journey-num">' + (i + 1) + '</span> ' + esc(label) + '</li>';
+                }).join('');
+            } else {
+                journeyPanel.style.display = 'none';
+            }
+        }
+
+        // Map: infrastructure nodes + care_sequence route (reads existing API; no backend change)
+        var mapWrap = document.getElementById('result-map-wrap');
+        var mapContainer = document.getElementById('result-map');
+        if (mapWrap && mapContainer && typeof KlaraMap !== 'undefined') {
+            mapWrap.style.display = 'block';
+            if (!window._klaraMapInited) {
+                KlaraMap.init('result-map', {}).then(function () {
+                    window._klaraMapInited = true;
+                    if (careSequence && careSequence.length) KlaraMap.updateCareSequence(careSequence);
+                    fetch('/api/demand-pressure').then(function (r) { return r.ok ? r.json() : {}; }).then(function (res) {
+                        var pressure = res.pressure || {};
+                        var nodesById = KlaraMap.getNodesById && KlaraMap.getNodesById();
+                        if (!nodesById) return;
+                        var arr = [];
+                        for (var id in pressure) {
+                            var n = nodesById[id];
+                            if (n && n.lon != null && n.lat != null) arr.push({ position: [n.lon, n.lat], weight: pressure[id] });
+                        }
+                        if (KlaraMap.setPressureData) KlaraMap.setPressureData(arr);
+                    }).catch(function () {});
+                }).catch(function () { mapWrap.style.display = 'none'; });
+            } else {
+                KlaraMap.updateCareSequence(careSequence || []);
+            }
+        }
+
+        populateGovernancePanel(data);
+    }
+
+    function populateGovernancePanel(data) {
+        var risk = data.risk_assessment || {};
+        var routing = data.routing_recommendation || {};
+        var nav = data.navigation_context || {};
+        var routingResult = nav.routing_result || {};
+        var optimizer = routingResult.optimizer || {};
+
+        var riskEl = document.getElementById('gov-risk');
+        if (riskEl) {
+            var level = (risk.level || 'unknown').toLowerCase();
+            var cls = level === 'low' ? 'gov-low' : level === 'medium' ? 'gov-medium' : level === 'high' || level === 'emergency' ? 'gov-high' : '';
+            riskEl.innerHTML = '<span class="gov-status ' + cls + '">' + esc(risk.level || 'unknown') + '</span>';
+        }
+
+        var routingEl = document.getElementById('gov-routing');
+        if (routingEl) routingEl.innerHTML = 'Primary Pathway: ' + esc(routing.primary_pathway || '—');
+
+        var capacityEl = document.getElementById('gov-capacity');
+        if (capacityEl) {
+            var costs = optimizer.pathway_costs || {};
+            capacityEl.innerHTML = Object.keys(costs).length
+                ? Object.entries(costs).map(function (kv) { return esc(kv[0]) + ': ' + Number(kv[1]).toFixed(2); }).join('<br>')
+                : 'No constraint signals';
+        }
+
+        var optEl = document.getElementById('gov-optimization');
+        if (optEl) {
+            var objVal = optimizer.objective_value;
+            optEl.innerHTML = 'Solver: ' + esc(optimizer.solver || 'rule') + '<br>Status: ' + esc(optimizer.status || 'unknown') + '<br>Objective: ' + (objVal != null ? Number(objVal).toFixed(2) : '—');
+        }
+
+        var policyEl = document.getElementById('gov-policy');
+        if (policyEl) {
+            var policy = routing.policy || {};
+            var applied = policy.applied || [];
+            var notes = policy.notes || [];
+            if (applied.length || notes.length) {
+                policyEl.innerHTML = (applied.length ? '<p class="gov-policy-applied">' + applied.map(function (p) { return '✔ ' + esc(p.replace(/_/g, ' ')); }).join('<br>') + '</p>' : '') +
+                    (notes.length ? '<ul class="gov-policy-notes">' + notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul>' : '');
+            } else {
+                policyEl.innerHTML = 'No policies applied for this routing.';
+            }
+        }
+
+        var impactEl = document.getElementById('gov-impact');
+        if (impactEl) {
+            var impact = data.system_impact || {};
+            var erAvoided = impact.er_visits_avoided;
+            var savings = impact.cost_savings_estimate;
+            var strain = impact.system_strain_score;
+            impactEl.innerHTML = (erAvoided != null ? 'ER visits avoided: ' + esc(String(erAvoided)) + '<br>' : '') +
+                (savings != null ? 'Est. savings: $' + esc(String(savings)) + '<br>' : '') +
+                (strain != null ? 'System strain: ' + Number(strain).toFixed(2) : '');
+            if (!impactEl.innerHTML.trim()) impactEl.innerHTML = '—';
+        }
+
+        var traceList = document.getElementById('gov-trace');
+        if (traceList) {
+            var trace = data.pipeline_stages || data.stages_executed || [];
+            traceList.innerHTML = trace.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('');
+        }
     }
 
     function initLPToggle() {
@@ -703,6 +860,9 @@
     async function doSubmitRequest() {
         if (!state.chosenPathway || !state.assessData) return;
         const observable = buildObservableSummary(state.assessData);
+        const rec = state.assessData.routing_recommendation || {};
+        const nav = state.assessData.navigation_context || {};
+        const routingResult = nav.routing_result || {};
         try {
             await fetch('/api/requests', {
                 method: 'POST',
@@ -711,6 +871,9 @@
                     session_id: state.sessionId,
                     pathway: state.chosenPathway,
                     observable_summary: observable,
+                    care_sequence: rec.care_sequence || null,
+                    optimizer: routingResult.optimizer || null,
+                    region: (nav.region || '') + '',
                 }),
             });
             submitRequestBtn.textContent = 'Request Submitted ✓';
@@ -866,8 +1029,46 @@
 
     initVoice();
     initLPToggle();
+    (function initMapControls() {
+        var mapWrap = document.getElementById('result-map-wrap');
+        var expandBtn = document.getElementById('map-expand-btn');
+        var filtersEl = document.getElementById('map-filters');
+        if (expandBtn && mapWrap) {
+            expandBtn.addEventListener('click', function () {
+                var isFull = mapWrap.classList.toggle('map-fullscreen');
+                expandBtn.textContent = isFull ? 'Close' : 'Expand Map';
+                expandBtn.setAttribute('aria-label', isFull ? 'Close map' : 'Expand map');
+            });
+        }
+        if (filtersEl && typeof KlaraMap !== 'undefined' && KlaraMap.setVisibleNodeTypes) {
+            filtersEl.addEventListener('change', function () {
+                var types = [];
+                filtersEl.querySelectorAll('input[type="checkbox"]:checked').forEach(function (cb) {
+                    var t = cb.getAttribute('data-type');
+                    if (t) types.push(t);
+                });
+                KlaraMap.setVisibleNodeTypes(types.length ? types : null);
+            });
+        }
+    })();
     updateConnectionStatus();
     showLanding();
+
+    // ── Backend connectivity check (so you can confirm API is reachable) ──
+    (function checkBackendConnection() {
+        var el = document.getElementById('connection-status-backend');
+        if (!el) return;
+        fetch('/api/health').then(function (r) {
+            if (r.ok) return r.json();
+            throw new Error('Not OK');
+        }).then(function () {
+            el.textContent = '\u2705 Backend connected';
+            el.title = 'KLARA API is reachable at this origin';
+        }).catch(function () {
+            el.textContent = '\u274C Backend unreachable';
+            el.title = 'Open this page from the same origin as the API (e.g. http://localhost:8000/)';
+        });
+    })();
 
     // ── Capability dropdown (UI only; status indicators, no config) ──
     (function () {

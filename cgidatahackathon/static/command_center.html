@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klara Command Center — Provincial Operations</title>
+    <meta name="description" content="Province-wide demand pressure, pathway utilization, system congestion. Reads existing API data only.">
+    <link rel="stylesheet" href="/static/command_center.css">
+    <link rel="stylesheet" href="https://unpkg.com/mapbox-gl@2.15.0/dist/mapbox-gl.css">
+</head>
+<body>
+    <header class="cc-header" role="banner">
+        <div class="cc-header-inner">
+            <h1 class="cc-logo">Klara Command Center</h1>
+            <nav class="cc-nav" aria-label="Navigation">
+                <a href="/">Patient View</a>
+                <a href="/admin">Admin Dashboard</a>
+                <a href="/clinician-dashboard">Clinician Dashboard</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="command-center" role="main">
+        <p class="cc-data-note" aria-live="polite">Data from existing APIs: /api/demand-pressure, /api/requests, /admin/metrics. No routing logic modified.</p>
+
+        <div class="cc-grid">
+            <div class="cc-card" aria-labelledby="cc-pressure-heading">
+                <h3 id="cc-pressure-heading">Demand Pressure</h3>
+                <div id="cc-pressure-map" class="cc-map-wrap" aria-label="Provincial demand pressure map"></div>
+            </div>
+
+            <div class="cc-card" aria-labelledby="cc-pathways-heading">
+                <h3 id="cc-pathways-heading">Pathway Utilization</h3>
+                <div class="cc-chart-wrap">
+                    <canvas id="cc-pathways-chart" role="img" aria-label="Pathway utilization bar chart"></canvas>
+                </div>
+            </div>
+
+            <div class="cc-card" aria-labelledby="cc-congestion-heading">
+                <h3 id="cc-congestion-heading">System Congestion</h3>
+                <div class="cc-chart-wrap">
+                    <canvas id="cc-congestion-chart" role="img" aria-label="System congestion by pathway"></canvas>
+                </div>
+            </div>
+
+            <div class="cc-card" aria-labelledby="cc-routing-heading">
+                <h3 id="cc-routing-heading">Recent Routing Decisions</h3>
+                <div class="cc-table-wrap">
+                    <table id="cc-routing-table" class="cc-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Session</th>
+                                <th scope="col">Pathway</th>
+                                <th scope="col">Region</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="cc-card cc-scenario-card" aria-labelledby="cc-scenario-heading">
+                <h3 id="cc-scenario-heading">Scenario Simulation</h3>
+                <p class="cc-scenario-desc">Health system planning: estimate effects of capacity and demand changes.</p>
+                <div class="cc-scenario-controls">
+                    <div class="cc-scenario-row">
+                        <label for="cc-scenario-region">Region</label>
+                        <input type="text" id="cc-scenario-region" class="cc-scenario-input" value="Cape Breton" placeholder="e.g. Cape Breton">
+                    </div>
+                    <div class="cc-scenario-row">
+                        <button type="button" id="cc-scenario-physicians" class="cc-scenario-btn">Add 10 physicians</button>
+                        <span class="cc-scenario-hint">→ patients served, strain change, ER overflow</span>
+                    </div>
+                    <div class="cc-scenario-row">
+                        <button type="button" id="cc-scenario-er" class="cc-scenario-btn">ER capacity −10%</button>
+                        <span class="cc-scenario-hint">→ overflow / strain estimate</span>
+                    </div>
+                    <div class="cc-scenario-row">
+                        <button type="button" id="cc-scenario-demand" class="cc-scenario-btn">Demand +20%</button>
+                        <span class="cc-scenario-hint">→ strain estimate</span>
+                    </div>
+                    <div class="cc-scenario-row">
+                        <button type="button" id="cc-scenario-transport" class="cc-scenario-btn">Enable municipal transport</button>
+                        <span class="cc-scenario-hint">→ rural access improvement</span>
+                    </div>
+                </div>
+                <div id="cc-scenario-result" class="cc-scenario-result" aria-live="polite"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="cc-footer">
+        <p>Provincial Healthcare Operations Dashboard. Routing determined by clinical triage model + capacity optimization.</p>
+    </footer>
+
+    <script src="https://unpkg.com/deck.gl@8.9.35/dist.min.js"></script>
+    <script src="https://unpkg.com/mapbox-gl@2.15.0/dist/mapbox-gl.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="/static/map.js"></script>
+    <script src="/static/command_center.js"></script>
+</body>
+</html>

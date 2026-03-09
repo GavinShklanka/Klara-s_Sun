@@ -1,0 +1,137 @@
+/* Control Room — same dark design system as narrative UI. Observability only. */
+:root {
+    --cr-bg: #0a0a0b;
+    --cr-card: #111113;
+    --cr-border: #1e1e26;
+    --cr-text: #e8e8f0;
+    --cr-muted: #8888a0;
+    --cr-dim: #50505f;
+    --cr-accent: #5b6ef5;
+    --cr-cyan: #00d4ff;
+    --cr-green: #00e09a;
+    --cr-amber: #f5c400;
+    --cr-red: #ff4d6d;
+}
+
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    background: var(--cr-bg);
+    color: var(--cr-text);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.control-room {
+    padding: 24px 8vw;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.cr-note {
+    font-size: 12px;
+    color: var(--cr-dim);
+    margin: 0 0 20px 0;
+}
+
+.cr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.cr-card {
+    background: var(--cr-card);
+    border: 1px solid var(--cr-border);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.cr-card h2 {
+    margin: 0 0 14px 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cr-cyan);
+}
+
+.cr-header {
+    background: var(--cr-card);
+    border-bottom: 1px solid var(--cr-border);
+    padding: 12px 8vw;
+}
+.cr-header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.cr-logo {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--cr-text);
+    margin: 0;
+}
+.cr-nav {
+    display: flex;
+    gap: 16px;
+}
+.cr-nav a {
+    color: var(--cr-muted);
+    text-decoration: none;
+}
+.cr-nav a:hover {
+    color: var(--cr-cyan);
+}
+
+.cr-pipeline-stages {
+    list-style: none;
+    margin: 0 0 14px 0;
+    padding: 0;
+    font-size: 13px;
+}
+.cr-pipeline-stages li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--cr-border);
+    color: var(--cr-muted);
+}
+.cr-pipeline-stages li.active {
+    color: var(--cr-cyan);
+    font-weight: 500;
+}
+.cr-pipeline-live p {
+    margin: 6px 0;
+    font-size: 13px;
+}
+.cr-pipeline-live strong {
+    color: var(--cr-dim);
+}
+
+.cr-routing-block p,
+.cr-telemetry-block p,
+.cr-policy-block p {
+    margin: 8px 0;
+    font-size: 13px;
+}
+.cr-hr {
+    border: none;
+    border-top: 1px solid var(--cr-border);
+    margin: 12px 0;
+}
+.cr-policy-rules {
+    font-size: 12px;
+    color: var(--cr-dim);
+    margin-top: 12px;
+}
+.cr-policy-status.pass { color: var(--cr-green); }
+.cr-policy-status.fail { color: var(--cr-red); }
+
+.cr-footer {
+    margin-top: 32px;
+    padding: 16px 8vw;
+    border-top: 1px solid var(--cr-border);
+    font-size: 12px;
+    color: var(--cr-dim);
+    text-align: center;
+}

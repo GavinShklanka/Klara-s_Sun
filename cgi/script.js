@@ -1,17 +1,17 @@
 /**
- * Klara OS — Agentic RAG demo (static, no backend)
- * When user clicks "Agentic RAG" on a pathway, we build a payload, (optionally) call an LLM endpoint,
- * and render the response in the panel under the pathway list.
- *
- * LATER: Replace getHardcodedResponse with fetch(AGENTIC_RAG_URL, { body: JSON.stringify(payload) })
- *        and replace buildMockPayload with real intake_summary / risk_assessment from the page DOM.
+ * Klara OS — Agentic RAG integration
+ * On "Agentic RAG" click we POST a payload to your endpoint and render the JSON response.
+ * Set AGENTIC_RAG_URL below and USE_REAL_RAG = true to use your agentic RAG; otherwise we show hardcoded samples.
  */
 
 (function () {
   'use strict';
 
-  // Placeholder URL for when you wire a real serverless function. Not used while using hardcoded responses.
-  const AGENTIC_RAG_URL = 'https://example.com/agentic-rag';
+  // ========== INTEGRATION: backend and RAG endpoints ==========
+  // Teammate's FastAPI backend (cgidatahackathon): POST /assess expects { text, region }
+  const AGENTIC_RAG_URL = 'http://127.0.0.1:8000/assess';  // Replace with deployed URL (e.g. https://your-api.com/assess)
+  const USE_REAL_RAG = true;  // Set true to call the API; false = demo mode (hardcoded only)
+  const USE_BACKEND_ASSESS = true;  // If true and USE_REAL_RAG, send /assess-compatible payload { text, region } and map response
 
   /**
    * Builds the JSON payload that would be sent to the Agentic RAG endpoint.
@@ -289,26 +289,92 @@
   }
 
   /**
+   * Maps backend /assess response to panel schema. Backend returns:
+   * routing_recommendation { primary_pathway, reason, options }, structured_summary, governance { confidence_score }
+   */
+  function mapAssessResponseToPanel(backendData, pathwayId) {
+    var rec = backendData.routing_recommendation || {};
+    var gov = backendData.governance || {};
+    var summary = backendData.structured_summary || {};
+    var opts = (rec.options || []).map(function (o, i) {
+      return { pathway: o, reason: 'Alternative option ' + (i + 1) + '.' };
+    });
+    return {
+      pathway: pathwayId,
+      navigation_summary: rec.reason || summary.recommended_pathway || 'Assessment complete.',
+      next_steps_for_patient: [
+        'Review the recommended pathway: ' + (rec.primary_pathway || '—'),
+        'Prepare health card and medication list.',
+        'Follow any clinician instructions.'
+      ],
+      questions_for_clinician: [],
+      information_to_prepare: (summary.symptoms ? ['Symptoms: ' + summary.symptoms] : []).concat(
+        summary.duration ? ['Duration: ' + summary.duration] : [],
+        summary.risk ? ['Risk level: ' + summary.risk] : []
+      ),
+      safety_reminders: ['If symptoms worsen, seek urgent care or call 811.'],
+      escalation_conditions: 'Escalate if emergency indicators appear.',
+      alternative_pathways_to_consider: opts,
+      confidence: { numeric_score: gov.confidence_score || 0.9, rationale: 'Based on symptom and risk assessment.' },
+      sources: []
+    };
+  }
+
+  /**
    * Handles a click on "Agentic RAG" for a pathway.
-   * Builds payload (for future API), then uses hardcoded response and renders.
-   * LATER: Replace the hardcoded call with fetch(AGENTIC_RAG_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-   *        and use the response body instead of getHardcodedResponse(pathwayId).
+   * If USE_REAL_RAG: POSTs payload to AGENTIC_RAG_URL, shows loading, then renders response (or fallback on error).
+   * If not: renders hardcoded sample immediately.
    */
   function handlePathwayClick(pathwayId) {
     var payload = buildMockPayload(pathwayId);
+    var panel = document.getElementById('rag-panel-' + pathwayId);
+    if (!panel) return;
 
-    // LATER: Uncomment and use real API; remove or bypass getHardcodedResponse.
-    // fetch(AGENTIC_RAG_URL, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(payload)
-    // })
-    //   .then(function (res) { return res.json(); })
-    //   .then(function (data) { renderAgenticResponse(pathwayId, data); })
-    //   .catch(function (err) { console.error('Agentic RAG error', err); });
+    function showLoading() {
+      document.querySelectorAll('.rag-panel').forEach(function (p) {
+        p.classList.remove('show');
+        p.setAttribute('aria-hidden', 'true');
+      });
+      panel.classList.add('show');
+      panel.setAttribute('aria-hidden', 'false');
+      panel.innerHTML = '<div class="rag-section-content">Loading agentic RAG…</div>';
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 
-    var data = getHardcodedResponse(pathwayId);
-    renderAgenticResponse(pathwayId, data);
+    function fallbackToSample() {
+      if (typeof window.showToast === 'function') window.showToast('Agentic RAG unavailable; showing sample.');
+      renderAgenticResponse(pathwayId, getHardcodedResponse(pathwayId));
+    }
+
+    if (!USE_REAL_RAG) {
+      renderAgenticResponse(pathwayId, getHardcodedResponse(pathwayId));
+      return;
+    }
+
+    showLoading();
+    var body = USE_BACKEND_ASSESS
+      ? JSON.stringify({
+          text: payload.intake_summary.chief_complaint,
+          region: 'Halifax'
+        })
+      : JSON.stringify(payload);
+    fetch(AGENTIC_RAG_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: body
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        var panelData = USE_BACKEND_ASSESS ? mapAssessResponseToPanel(data, pathwayId) : data;
+        renderAgenticResponse(pathwayId, panelData);
+      })
+      .catch(function (err) {
+        console.error('Agentic RAG error', err);
+        fallbackToSample();
+      });
   }
 
   // Expose for inline onclick (and optional debugging)

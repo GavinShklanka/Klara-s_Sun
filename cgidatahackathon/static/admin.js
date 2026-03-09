@@ -88,9 +88,9 @@
         }
 
         try {
-            // Animate stages while waiting
-            await sleep(300); activateStage(2);
-            await sleep(300); activateStage(3);
+            // Staged pipeline simulation (800ms per stage — production demo feel)
+            await sleep(800); activateStage(2);
+            await sleep(800); activateStage(3);
 
             const res = await fetch('/assess', {
                 method: 'POST',
@@ -103,10 +103,10 @@
 
             // Finish pipeline animation
             activateStage(4);
-            await sleep(250); activateStage(5);
-            await sleep(250); activateStage(6);
-            await sleep(250); activateStage(7);
-            await sleep(200);
+            await sleep(800); activateStage(5);
+            await sleep(800); activateStage(6);
+            await sleep(800); activateStage(7);
+            await sleep(400);
 
             renderResults(data);
         } catch (err) {
@@ -219,6 +219,28 @@
         // Session ID
         sessionIdEl.textContent = `Session ID: ${data.session_id}`;
 
+        // Clinician map: update care sequence route from existing API response (no backend change)
+        if (typeof KlaraMap !== 'undefined') {
+            const careSeq = data.routing_recommendation && data.routing_recommendation.care_sequence;
+            KlaraMap.updateCareSequence(careSeq || []);
+            KlaraMap.setDemandClusters([]); // placeholder: future demand clusters
+        }
+
+        // Command Center: store last optimizer for optimization insight panel (existing API fields only)
+        const opt = data.navigation_context && data.navigation_context.routing_result && data.navigation_context.routing_result.optimizer;
+        if (opt && typeof localStorage !== 'undefined') {
+            try {
+                localStorage.setItem('klara_last_optimizer', JSON.stringify({
+                    solver: opt.solver,
+                    solve_time_ms: opt.solve_time_ms,
+                    objective_value: opt.objective_value,
+                    pathway_ranking: opt.pathway_ranking
+                }));
+                const seq = data.routing_recommendation && data.routing_recommendation.care_sequence;
+                if (seq && seq.length) localStorage.setItem('klara_last_care_sequence', JSON.stringify(seq));
+            } catch (_) {}
+        }
+
         // Scroll results into view on mobile
         if (window.innerWidth < 960) {
             resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -249,6 +271,10 @@
     // ── Patient Care Requests ──
     const requestsList = document.getElementById('requests-list');
 
+    function formatPathwayName(id) {
+        return (PATHWAY_NAMES[id] || (id && id.replace(/_/g, ' ')) || '—');
+    }
+
     async function loadRequests() {
         try {
             const res = await fetch('/api/requests');
@@ -257,15 +283,44 @@
             if (reqs.length === 0) {
                 requestsList.innerHTML = '<p class="requests-empty">No requests yet. Patients submit from the results screen.</p>';
             } else {
-                requestsList.innerHTML = reqs.map(r => `
-                    <div class="request-item">
-                        <div class="request-meta">
-                            <strong>${esc(r.pathway)}</strong> · ${new Date(r.timestamp).toLocaleString()}
+                requestsList.innerHTML = reqs.map((r, idx) => {
+                    const seq = r.care_sequence && Array.isArray(r.care_sequence) ? r.care_sequence : [];
+                    const opt = r.optimizer && typeof r.optimizer === 'object' ? r.optimizer : null;
+                    const hasExpand = seq.length > 0 || opt;
+                    const seqHtml = seq.length ? '<div class="request-expanded-section"><strong>Care sequence</strong><ol class="request-care-sequence">' +
+                        seq.map(s => '<li>' + esc(formatPathwayName(s)) + '</li>').join('') + '</ol></div>' : '';
+                    const optHtml = opt ? '<div class="request-expanded-section"><strong>Optimizer</strong><ul class="request-optimizer">' +
+                        (opt.solver ? '<li>Solver: ' + esc(opt.solver) + '</li>' : '') +
+                        (opt.status ? '<li>Status: ' + esc(opt.status) + '</li>' : '') +
+                        (opt.objective_value != null ? '<li>Objective: ' + Number(opt.objective_value).toFixed(2) + '</li>' : '') +
+                        (opt.solve_time != null ? '<li>Solve time: ' + esc(String(opt.solve_time)) + '</li>' : '') +
+                        '</ul></div>' : '';
+                    return `
+                    <div class="request-item ${hasExpand ? 'request-item-expandable' : ''}" data-idx="${idx}">
+                        <div class="request-item-header" ${hasExpand ? 'role="button" tabindex="0" aria-expanded="false"' : ''}>
+                            <div class="request-meta">
+                                <strong>${esc(formatPathwayName(r.pathway))}</strong> · ${new Date(r.timestamp).toLocaleString()}
+                            </div>
+                            <div class="request-session">Session: ${esc(r.session_id || '—')}${r.region ? ' · Region: ' + esc(r.region) : ''}</div>
+                            ${r.observable_summary ? `<div class="request-summary">${esc(r.observable_summary)}</div>` : ''}
+                            ${hasExpand ? '<span class="request-expand-icon" aria-hidden="true">▸</span>' : ''}
                         </div>
-                        <div class="request-session">Session: ${esc(r.session_id || '—')}</div>
-                        ${r.observable_summary ? `<div class="request-summary">${esc(r.observable_summary)}</div>` : ''}
+                        ${hasExpand ? `<div class="request-item-expanded" hidden>${seqHtml}${optHtml}</div>` : ''}
                     </div>
-                `).join('');
+                `;
+                }).join('');
+                requestsList.querySelectorAll('.request-item-expandable .request-item-header').forEach(el => {
+                    el.addEventListener('click', () => {
+                        const item = el.closest('.request-item');
+                        const expanded = item.querySelector('.request-item-expanded');
+                        const icon = item.querySelector('.request-expand-icon');
+                        if (!expanded) return;
+                        const isOpen = !expanded.hidden;
+                        expanded.hidden = isOpen;
+                        el.setAttribute('aria-expanded', String(!isOpen));
+                        if (icon) icon.textContent = isOpen ? '▸' : '▾';
+                    });
+                });
             }
         } catch (e) {
             requestsList.innerHTML = '<p class="requests-empty">Could not load requests.</p>';
@@ -336,4 +391,24 @@
 
     loadMetrics();
     setInterval(loadMetrics, 5000);
+
+    // Clinician map: infrastructure nodes, care sequence routes, future demand clusters (placeholder)
+    const adminMapEl = document.getElementById('admin-map');
+    if (adminMapEl && typeof KlaraMap !== 'undefined') {
+        KlaraMap.init('admin-map', {}).then(function () {
+            KlaraMap.setDemandClusters([]);
+        }).catch(function () {});
+    }
+
+    // Safari iframe fix — force layout refresh so embedded content height is correct
+    function refreshIframeHeights() {
+        document.querySelectorAll('iframe').forEach(function (iframe) {
+            try {
+                if (iframe.contentWindow && iframe.contentWindow.document && iframe.contentWindow.document.body) {
+                    iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+                }
+            } catch (e) { /* cross-origin or unavailable */ }
+        });
+    }
+    window.addEventListener('load', refreshIframeHeights);
 })();

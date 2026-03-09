@@ -128,6 +128,7 @@ def route_care(
     symptoms: list[str] | None = None,
     complaint_text: str | None = None,
     duration_hours: int | None = None,
+    policy_context: dict | None = None,
 ) -> dict:
     """
     Capacity-Aware Routing Engine (Architecture Stage 5).
@@ -153,12 +154,16 @@ def route_care(
     if risk_level == "emergency":
         log_route("811")
         log_service_usage("811")
-        return {
+        out = {
             "primary_pathway": "811",
             "reason": "Human-in-loop: Call 811 for nurse triage. Do not go directly to ED—811 will direct you if needed.",
             "options": ["811", "urgent"],
+            "care_sequence": ["811"],
             "optimizer": {"solver": "bypass", "status": "emergency_hitl_811", "solve_time_ms": 0.0, "objective_value": 0.0},
         }
+        if policy_context:
+            out["policy"] = {"applied": policy_context.get("applied_policies", []), "notes": policy_context.get("policy_notes", [])}
+        return out
 
     from klara_core.optimization import optimize_pathways
 
@@ -187,6 +192,7 @@ def route_care(
             duration_hours=duration_hours,
             capacity_snapshot=capacity_snapshot,
         ),
+        policy_context=policy_context,
     )
 
     primary_pathway = result["primary"]
@@ -197,11 +203,13 @@ def route_care(
         f"Solver={result.get('solver')} status={result.get('status')}."
     )
     options = [primary_pathway] + result.get("alternatives", [])
+    care_sequence = result.get("care_sequence") or [primary_pathway]
 
-    return {
+    out = {
         "primary_pathway": primary_pathway,
         "reason": reason,
         "options": options,
+        "care_sequence": care_sequence,
         "optimizer": {
             "solver": result.get("solver"),
             "status": result.get("status"),
@@ -211,3 +219,6 @@ def route_care(
             "pathway_ranking": result.get("pathway_ranking", []),
         },
     }
+    if policy_context:
+        out["policy"] = {"applied": policy_context.get("applied_policies", []), "notes": policy_context.get("policy_notes", [])}
+    return out
