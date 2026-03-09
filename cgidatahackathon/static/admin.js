@@ -274,4 +274,66 @@
 
     loadRequests();
     setInterval(loadRequests, 10000);
+
+    // ── Governance Dashboard (poll /admin/metrics every 5 seconds) ──
+    const PATHWAY_NAMES = {
+        virtualcarens: 'VirtualCareNS',
+        pharmacy: 'Pharmacy',
+        primarycare: 'Walk-in',
+        urgent: 'Urgent',
+        '811': '811',
+        emergency: 'Emergency',
+        mental_health: 'Mental Health',
+        community_health: 'Community Health',
+    };
+
+    async function loadMetrics() {
+        try {
+            const res = await fetch('/admin/metrics');
+            const data = await res.json();
+            const sessionCount = document.getElementById('session-count');
+            const requestCount = document.getElementById('request-count');
+            const routingTbody = document.getElementById('routing-tbody');
+            const usageBars = document.getElementById('usage-bars');
+            const scribeCount = document.getElementById('scribe-count');
+            const erDiversionRate = document.getElementById('er-diversion-rate');
+
+            if (sessionCount) sessionCount.textContent = String(data.sessions || 0);
+            if (requestCount) requestCount.textContent = String(data.requests || 0);
+            if (scribeCount) scribeCount.textContent = String(data.scribe_enrollments || 0);
+
+            const routing = data.routing || {};
+            const services = data.services || {};
+            const total = Math.max(1, Object.values(routing).reduce((a, b) => a + b, 0));
+            const emergencyCount = routing.emergency || 0;
+            const ed811Count = (routing.emergency || 0) + (routing['811'] || 0);
+            const diversion = total > 0 ? ((total - ed811Count) / total * 100).toFixed(1) : 0;
+            if (erDiversionRate) erDiversionRate.textContent = diversion + '% diverted from ED/811';
+
+            const routingEntries = Object.entries(routing).sort((a, b) => b[1] - a[1]);
+            if (routingTbody) {
+                routingTbody.innerHTML = routingEntries.length === 0
+                    ? '<tr><td colspan="2">No routing data yet</td></tr>'
+                    : routingEntries.map(([k, v]) => '<tr><td>' + esc(PATHWAY_NAMES[k] || k) + '</td><td>' + v + '</td></tr>').join('');
+            }
+
+            const maxUsage = Math.max(1, ...Object.values(services));
+            const usageEntries = Object.entries(services).sort((a, b) => b[1] - a[1]);
+            if (usageBars) {
+                usageBars.innerHTML = usageEntries.length === 0
+                    ? '<p style="color:#64748b;font-size:.9rem">No usage data yet</p>'
+                    : usageEntries.map(([k, v]) =>
+                        '<div class="usage-bar-row">' +
+                        '<span class="usage-bar-label">' + esc(PATHWAY_NAMES[k] || k) + '</span>' +
+                        '<div class="usage-bar-track"><div class="usage-bar-fill" style="width:' + (v / maxUsage * 100) + '%"></div></div>' +
+                        '<span class="usage-bar-value">' + v + '</span></div>'
+                    ).join('');
+            }
+        } catch (e) {
+            console.warn('Metrics fetch failed:', e);
+        }
+    }
+
+    loadMetrics();
+    setInterval(loadMetrics, 5000);
 })();

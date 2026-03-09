@@ -50,6 +50,56 @@
         </div>
     </header>
 
+    <!-- ═══════════ GOVERNANCE DASHBOARD ═══════════ -->
+    <section id="governance-dashboard" class="governance-section">
+        <h2 class="governance-title">Governance Dashboard</h2>
+        <div class="governance-grid">
+            <!-- System Status -->
+            <div class="governance-card" id="card-system-status">
+                <h3><span class="card-icon">📊</span> System Status</h3>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="session-count">0</span>
+                        <span class="stat-label">Active Sessions</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="request-count">0</span>
+                        <span class="stat-label">Requests Today</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Routing Analytics -->
+            <div class="governance-card" id="card-routing">
+                <h3><span class="card-icon">🧭</span> Routing Analytics</h3>
+                <div class="routing-table-wrap">
+                    <table class="routing-table" id="routing-table">
+                        <thead>
+                            <tr><th>Pathway</th><th>Count</th></tr>
+                        </thead>
+                        <tbody id="routing-tbody"></tbody>
+                    </table>
+                </div>
+                <p class="stat-note"><span id="er-diversion-label">ER Diversion:</span> <span id="er-diversion-rate">—</span></p>
+            </div>
+            <!-- Alternative Care Usage -->
+            <div class="governance-card" id="card-alt-care">
+                <h3><span class="card-icon">🏥</span> Alternative Care Usage</h3>
+                <div class="usage-bars" id="usage-bars"></div>
+            </div>
+            <!-- AI Scribe Capacity -->
+            <div class="governance-card" id="card-scribe">
+                <h3><span class="card-icon">🩺</span> AI Scribe Capacity</h3>
+                <div class="scribe-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="scribe-count">0</span>
+                        <span class="stat-label">Enrolled Physicians</span>
+                    </div>
+                    <p class="scribe-note">Clinics available for routing</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ═══════════ PIPELINE VISUALIZATION ═══════════ -->
     <section id="pipeline" aria-label="Processing Pipeline">
         <div class="pipeline-track">
@@ -118,7 +168,7 @@
                         ⚠️ Persistent Fever
                     </button>
                     <button type="button" class="demo-btn demo-low"
-                        data-text="I've had a mild headache on and off for a couple of days. Over-the-counter painkillers help a bit."
+                        data-text="I've had a mild headache on and off for a couple of days. Over-the-counter medicine help a bit."
                         data-region="Annapolis Valley">
                         💊 Mild Headache
                     </button>

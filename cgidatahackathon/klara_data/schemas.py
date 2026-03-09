@@ -149,3 +149,5 @@ class AssessResponse(BaseModel):
     frontend_output: Optional[FrontendOutput] = None
     navigation_context: Optional[NavigationContextModel] = None
     pathway_urls: Optional[dict] = None  # pathway_id -> PathwayUrl for clickable NS service links
+    pipeline_stages: Optional[List[str]] = None  # stage IDs for UI decision graph visualization
+    optimization_explanation: Optional[str] = None  # "Why this route was selected"

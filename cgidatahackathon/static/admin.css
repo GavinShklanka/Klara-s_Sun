@@ -105,6 +105,117 @@ body {
 .audit-list { margin: 0; padding-left: 1.2rem; font-size: 0.8rem; color: #cbd5e1; }
 .session-id { margin-top: 2rem; text-align: center; color: #475569; font-family: monospace; font-size: 0.85rem; }
 
+/* Governance Dashboard */
+.governance-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+}
+.governance-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #0ea5e9;
+    margin: 0 0 1rem 0;
+}
+.governance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+}
+.governance-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+.governance-card h3 {
+    font-size: 1rem;
+    margin: 0 0 1rem 0;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.card-stats, .scribe-stats {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #0ea5e9;
+}
+.stat-label {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+.routing-table-wrap {
+    max-height: 180px;
+    overflow-y: auto;
+}
+.routing-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+.routing-table th, .routing-table td {
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+}
+.routing-table th {
+    color: #94a3b8;
+    font-weight: 600;
+    border-bottom: 1px solid #334155;
+}
+.routing-table td {
+    border-bottom: 1px solid #334155;
+}
+.stat-note, .scribe-note {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 0.75rem 0 0 0;
+}
+.usage-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+.usage-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.usage-bar-label {
+    flex: 0 0 120px;
+    font-size: 0.85rem;
+    color: #e2e8f0;
+}
+.usage-bar-track {
+    flex: 1;
+    height: 8px;
+    background: #0f172a;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.usage-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+.usage-bar-value {
+    flex: 0 0 36px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0ea5e9;
+}
+
 #app-footer { text-align: center; padding: 2rem; color: #64748b; font-size: 0.85rem; border-top: 1px solid #334155; margin-top: 2rem; }
 
 /* Patient Care Requests */

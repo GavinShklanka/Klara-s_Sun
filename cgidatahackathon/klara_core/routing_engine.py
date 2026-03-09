@@ -1,5 +1,6 @@
 import re
 
+from klara_core.telemetry import log_route, log_service_usage
 
 CANONICAL_PATHWAYS = [
     "virtualcarens",
@@ -150,6 +151,8 @@ def route_care(
     # Emergency override: Human-in-loop. Users must NOT self-escalate to ED.
     # Route to 811 Nurse Line for triage; clinician/nurse directs to ED if needed.
     if risk_level == "emergency":
+        log_route("811")
+        log_service_usage("811")
         return {
             "primary_pathway": "811",
             "reason": "Human-in-loop: Call 811 for nurse triage. Do not go directly to ED—811 will direct you if needed.",
@@ -187,6 +190,8 @@ def route_care(
     )
 
     primary_pathway = result["primary"]
+    log_route(primary_pathway)
+    log_service_usage(primary_pathway)
     reason = (
         "Optimization routing selected the pathway with lowest system strain under safety and capacity constraints. "
         f"Solver={result.get('solver')} status={result.get('status')}."

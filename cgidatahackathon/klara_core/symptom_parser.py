@@ -7,12 +7,15 @@ healthcare navigation (VirtualCareNS, primary care, urgent care, etc.).
 
 import re
 
+from klara_core.telemetry import log_request
+
 
 def parse_symptoms(text: str) -> dict:
     """
     Extract symptoms, care-context concepts, and duration from patient input.
     Mapped concepts support KLARA OS routing for NS pathways.
     """
+    log_request()
     text_lower = text.lower()
     symptoms = []
 

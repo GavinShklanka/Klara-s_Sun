@@ -13,7 +13,10 @@
     const healthCardInput = document.getElementById('health-card-input');
     const joinCancel = document.getElementById('join-cancel');
     const joinSubmit = document.getElementById('join-submit');
+    const landingView = document.getElementById('landing-view');
     const chatView = document.getElementById('chat-view');
+    const serviceDirectoryView = document.getElementById('service-directory-view');
+    const scribeView = document.getElementById('scribe-view');
     const resultsView = document.getElementById('results-view');
     const backBtn = document.getElementById('back-btn');
     const submitRequestBtn = document.getElementById('submit-request-btn');
@@ -194,6 +197,78 @@
         appendBubble('klara', SCRIPT.greeting.text);
         setStep('complaint');
         enableInput();
+        resetDecisionGraph();
+    }
+
+    function resetDecisionGraph() {
+        var nodes = document.querySelectorAll('.graph-node');
+        nodes.forEach(function (n) { n.classList.remove('graph-node-active', 'graph-node-completed'); });
+    }
+
+    function animateDecisionGraph(stages) {
+        if (!stages || !stages.length) return;
+        var nodes = document.querySelectorAll('.graph-node');
+        var order = ['user_input', 'symptom_parser', 'risk_engine', 'eligibility_engine', 'routing_engine', 'optimization', 'summary_builder', 'recommendation'];
+        var displayOrder = ['user_input', 'symptom_parser', 'risk_engine', 'eligibility_engine', 'routing_engine', 'optimization', 'recommendation'];
+        var stageToIdx = {};
+        displayOrder.forEach(function (s, i) { stageToIdx[s] = i; });
+        stageToIdx.summary_builder = 5;
+        var delay = 300;
+        stages.forEach(function (stage, idx) {
+            (function (s, i) {
+                setTimeout(function () {
+                    var maxIdx = order.indexOf(s);
+                    nodes.forEach(function (n) {
+                        n.classList.remove('graph-node-active', 'graph-node-completed');
+                        var ni = stageToIdx[n.dataset.stage];
+                        if (ni !== undefined && order.indexOf(n.dataset.stage) <= maxIdx) n.classList.add('graph-node-completed');
+                    });
+                    var node = document.querySelector('.graph-node[data-stage="' + s + '"]');
+                    if (!node && s === 'summary_builder') node = document.querySelector('.graph-node[data-stage="recommendation"]');
+                    if (node) node.classList.add('graph-node-active');
+                }, i * delay);
+            })(stage, idx);
+        });
+    }
+
+    function showView(viewId) {
+        [landingView, chatView, serviceDirectoryView, scribeView, resultsView].forEach(function (v) {
+            if (v) v.classList.add('view-hidden');
+        });
+        var v = document.getElementById(viewId);
+        if (v) v.classList.remove('view-hidden');
+    }
+
+    function showLanding() {
+        showView('landing-view');
+    }
+
+    function showCareIntake() {
+        showView('chat-view');
+        startChat();
+    }
+
+    function showServiceDirectory() {
+        showView('service-directory-view');
+        loadServiceDirectory();
+    }
+
+    function loadServiceDirectory() {
+        var list = document.getElementById('service-directory-list');
+        if (!list) return;
+        fetch('/api/services').then(function (r) { return r.json(); }).then(function (d) {
+            var services = d.services || [];
+            list.innerHTML = services.map(function (s) {
+                return '<a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer" class="service-directory-card">' +
+                    '<span class="service-directory-card-title">' + esc(s.name) + '</span>' +
+                    '<span class="service-directory-card-desc">' + esc(s.description || '') + '</span>' +
+                    '</a>';
+            }).join('');
+        }).catch(function () { list.innerHTML = '<p class="welcome-sub">Could not load services. Please try again.</p>'; });
+    }
+
+    function showScribePortal() {
+        showView('scribe-view');
     }
 
     function handleComplaint(text) {
@@ -411,7 +486,11 @@
 
             chatView.classList.add('view-hidden');
             resultsView.classList.remove('view-hidden');
+            showView('results-view');
 
+            if (data.pipeline_stages && data.pipeline_stages.length) {
+                animateDecisionGraph(data.pipeline_stages);
+            }
             renderResults(data);
         } catch (e) {
             appendBubble('klara', "I could not process that. Please try again.");
@@ -502,6 +581,15 @@
             <p><strong>Duration:</strong> ${esc(data.structured_summary?.duration || '—')}</p>
             <p><strong>Risk Level:</strong> ${esc(data.structured_summary?.risk || '—')}</p>
         `;
+
+        var optPanel = document.getElementById('optimization-explanation-panel');
+        var optText = document.getElementById('optimization-explanation-text');
+        if (optPanel && optText && data.optimization_explanation) {
+            optText.textContent = data.optimization_explanation;
+            optPanel.style.display = 'block';
+        } else if (optPanel) {
+            optPanel.style.display = 'none';
+        }
 
         // LP / Optimization panel — user-facing, non-technical
         const optData = data.navigation_context?.routing_result?.optimizer || data.optimizer || {};
@@ -747,8 +835,31 @@
     backBtn.addEventListener('click', () => {
         resultsView.classList.add('view-hidden');
         chatView.classList.remove('view-hidden');
+        showView('chat-view');
         state = { step: 'greeting', inSystem: null, messages: [], intake: { chiefComplaint: '', symptoms: '', duration: '', region: '', town: '', medications: '', allergies: '', done: false }, sessionId: null, assessData: null, chosenPathway: null };
         startChat();
+    });
+
+    document.getElementById('route-care')?.addEventListener('click', showCareIntake);
+    document.getElementById('route-directory')?.addEventListener('click', showServiceDirectory);
+    document.getElementById('route-scribe')?.addEventListener('click', showScribePortal);
+    document.getElementById('directory-back')?.addEventListener('click', showLanding);
+    document.getElementById('scribe-back')?.addEventListener('click', showLanding);
+
+    document.getElementById('scribe-form')?.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var name = document.getElementById('scribe-name')?.value || '';
+        var license = document.getElementById('scribe-license')?.value || '';
+        var clinic = document.getElementById('scribe-clinic')?.value || '';
+        var emr = document.getElementById('scribe-emr')?.value || '';
+        var email = document.getElementById('scribe-email')?.value || '';
+        fetch('/api/scribe/enroll', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, license_number: license, clinic, emr_system: emr, contact_email: email }),
+        }).then(function (r) { return r.json(); }).then(function (d) {
+            if (d.ok) alert('Thank you. Your enrollment has been received. We will contact you regarding training.');
+        }).catch(function () { alert('Could not submit. Please try again.'); });
     });
 
     submitRequestBtn.addEventListener('click', doSubmitRequest);
@@ -756,7 +867,7 @@
     initVoice();
     initLPToggle();
     updateConnectionStatus();
-    startChat();
+    showLanding();
 
     // ── Capability dropdown (UI only; status indicators, no config) ──
     (function () {

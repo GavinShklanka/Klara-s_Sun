@@ -38,21 +38,21 @@ from klara_data.schemas import (
     FrontendSource,
     NavigationContextModel,
 )
-from klara_core.symptom_parser import parse_symptoms
-from klara_core.risk_engine import risk_score
-from klara_core.provincial_context import load_provincial_context
-from klara_core.agentic_rag import retrieve_rag_context
-from klara_core.eligibility_engine import resolve_pathway_eligibility
-from klara_core.navigation_context import (
-    new_navigation_context,
-    attach_intake,
-    attach_risk,
-    attach_context,
-)
-from klara_core.routing_engine import route_care
-from klara_core.summary_builder import build_summary
+from klara_core.graph.decision_graph import run_decision_pipeline
+from klara_core.navigation_context import attach_context
+from klara_core.summary_builder import build_optimization_explanation
+from klara_core.telemetry import log_request, log_session, log_scribe_enrollment, telemetry
 
 STATIC_DIR = Path(__file__).parent / "static"
+
+# ── Service directory for "I Know What Service I Need" (bypasses conversational intake) ──
+SERVICE_DIRECTORY = [
+    {"id": "virtualcarens", "name": "VirtualCareNS", "url": "https://www.nshealth.ca/clinics-programs-and-services/virtualcarens", "description": "Virtual care appointments with NS Health providers"},
+    {"id": "811", "name": "Telehealth 811", "url": "https://811.novascotia.ca/", "description": "24/7 nurse line for health advice and triage"},
+    {"id": "pharmacy", "name": "Pharmacy prescribing", "url": "https://www.novascotia.ca/dhw/pharmacies/", "description": "Pharmacists can prescribe for minor ailments"},
+    {"id": "primarycare", "name": "Walk-in clinics", "url": "https://www.nshealth.ca/find-physician", "description": "Walk-in and same-day appointments"},
+    {"id": "urgent", "name": "Urgent treatment centres", "url": "https://www.nshealth.ca/urgent-treatment-centres", "description": "Same-day care for non-emergency conditions"},
+]
 
 # ── NS Core Care Pathways (real URLs for clickable routing) ──
 PATHWAY_URLS = {
@@ -111,62 +111,39 @@ def admin():
     """Serve the clinician / admin dashboard."""
     return FileResponse(str(STATIC_DIR / "admin.html"))
 
+
+@app.get("/admin/metrics")
+def get_admin_metrics():
+    """Return telemetry metrics for governance dashboard."""
+    return {
+        "sessions": telemetry.sessions,
+        "requests": telemetry.requests,
+        "routing": dict(telemetry.routing_counts),
+        "services": dict(telemetry.service_usage),
+        "scribe_enrollments": telemetry.scribe_enrollments,
+    }
+
 @app.post("/assess", response_model=AssessResponse)
 def assess_patient(request: AssessRequest):
-    nav_ctx = new_navigation_context(request.text, request.region, request.opor_context.model_dump() if request.opor_context else None)
+    log_session()
+    log_request()
+    opor = request.opor_context.model_dump() if request.opor_context else None
 
-    # ── Stage 2: Symptom Parsing (INTAKE = Patient Input + Symptom Parsing) ──
-    parsed = parse_symptoms(request.text)
-    attach_intake(nav_ctx, parsed["symptoms"], parsed["duration_hours"])
-
-    # ── Stage 3: Risk Classification (RISK_ASSESS) ──
-    risk_output = risk_score(parsed["symptoms"])
-    attach_risk(nav_ctx, risk_output["score"], risk_output["level"], risk_output["emergency_flags"])
-
-    # ── Stage 4: Provincial Context Analysis ──────────────────────────
-    #  Loads capacity, available pathways, and policy flags from Layer 3
-    #  (NS Health Capacity API, VirtualCareNS, EMR systems).
-    #  Equivalent to: ELIGIBILITY + RAG_RETRIEVE + Layer 3 data.
-    prov_ctx = load_provincial_context(request.region, risk_output["level"])
-
-    # ── Stage 4.5: Eligibility + RAG Retrieve (symptom_selections from UI signal RAG) ──
-    symptom_selections = getattr(request, "symptom_selections", None) or []
-    rag_context = retrieve_rag_context(parsed["text"], parsed["symptoms"], symptom_selections)
-    pathway_eligibility = resolve_pathway_eligibility(
-        parsed["symptoms"],
-        risk_output["level"],
-        prov_ctx["available_pathways"],
-    )
-    eligible_pathways = [p["pathway_id"] for p in pathway_eligibility if p["eligible"]]
-
-    # ── Stage 5: Capacity-Aware Routing (ROUTING_OPT) ──
-    routing_output = route_care(
-        risk_output["level"],
-        request.region,
-        eligible_pathways=eligible_pathways,
-        capacity_snapshot=prov_ctx["capacity_snapshot"],
-        symptoms=parsed["symptoms"],
-        complaint_text=parsed["text"],
-        duration_hours=parsed["duration_hours"],
+    result, stages_executed = run_decision_pipeline(
+        text=request.text,
+        region=request.region,
+        symptom_selections=symptom_selections,
+        opor_context=opor,
     )
 
-    # Human-in-loop: Users must NEVER self-escalate to ED. Replace emergency with 811.
-    options = routing_output["options"]
-    primary = routing_output["primary_pathway"]
-    if "emergency" in options:
-        options = ["811" if p == "emergency" else p for p in options]
-        options = list(dict.fromkeys(options))
-    if primary == "emergency":
-        primary = "811"
-    routing_output = {**routing_output, "primary_pathway": primary, "options": options}
-
-    # ── Stage 6: Care Recommendation / RESPONSE_GEN ──
-    summary_output = build_summary(
-        parsed["symptoms"],
-        parsed["duration_hours"],
-        risk_output["level"],
-        routing_output["primary_pathway"]
-    )
+    parsed = result["parsed"]
+    risk_output = result["risk_output"]
+    prov_ctx = result["prov_ctx"]
+    pathway_eligibility = result["pathway_eligibility"]
+    rag_context = result["rag_context"]
+    routing_output = result["routing_output"]
+    summary_output = result["summary_output"]
+    nav_ctx = result["nav_ctx"]
 
     # ── Stage 7: Structured Intake Output ─────────────────────────────
     #  This response is the official "Structured Intake Output" feeding:
@@ -225,6 +202,13 @@ def assess_patient(request: AssessRequest):
         response=frontend_output.model_dump(),
     )
 
+    opt_explanation = build_optimization_explanation(
+        risk_output["level"],
+        routing_output["primary_pathway"],
+        optimizer=routing_output.get("optimizer"),
+        options=routing_output.get("options", []),
+    )
+
     response = AssessResponse(
         session_id=nav_ctx["session_id"],
         patient_input=PatientInput(
@@ -278,6 +262,8 @@ def assess_patient(request: AssessRequest):
             k: v for k, v in PATHWAY_URLS.items()
             if k in routing_output["options"]
         },
+        pipeline_stages=stages_executed,
+        optimization_explanation=opt_explanation,
     )
 
     return response
@@ -287,6 +273,43 @@ def assess_patient(request: AssessRequest):
 def get_pathway_urls():
     """Return mapping of pathway IDs to real NS service URLs."""
     return PATHWAY_URLS
+
+
+@app.get("/api/services")
+def get_services():
+    """Return service directory for 'I Know What Service I Need' (bypasses intake)."""
+    return {"services": SERVICE_DIRECTORY}
+
+
+class ScribeEnrollPayload(PydanticBaseModel):
+    name: str = ""
+    license_number: str = ""
+    clinic: str = ""
+    emr_system: str = ""
+    contact_email: str = ""
+
+
+# ── In-memory store for AI Scribe enrollment (demo only) ──
+SCRIBE_ENROLLMENTS: list[dict] = []
+
+
+@app.post("/api/scribe/enroll")
+def scribe_enroll(payload: ScribeEnrollPayload):
+    """
+    Provider AI Scribe enrollment. Stores locally or logs for demo.
+    """
+    record = {
+        "name": payload.name,
+        "license_number": payload.license_number,
+        "clinic": payload.clinic,
+        "emr_system": payload.emr_system,
+        "contact_email": payload.contact_email,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
+    SCRIBE_ENROLLMENTS.append(record)
+    log_scribe_enrollment()
+    print("[KLARA] Scribe enrollment:", record)  # Log for demo
+    return {"ok": True, "message": "Enrollment received. We will contact you regarding training."}
 
 
 # ── Symptom options for narrowing search (FastAPI-sourced) ──

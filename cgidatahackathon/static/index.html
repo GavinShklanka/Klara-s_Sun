@@ -55,9 +55,45 @@
         </div>
 
         <main id="user-main">
-            <!-- ═══ Chat / Intake View ═══ -->
-            <div id="chat-view" class="view-container">
-                <div class="chat-container">
+            <!-- ═══ Landing: Route Selection ═══ -->
+            <div id="landing-view" class="view-container">
+                <h2 class="welcome-heading">How can we help you today?</h2>
+                <p class="welcome-sub">Choose your path to get started.</p>
+                <div class="route-cards">
+                    <button type="button" class="route-card" id="route-care" data-route="care">
+                        <span class="route-icon">🏥</span>
+                        <span class="route-title">Need Help Finding Care</span>
+                        <span class="route-desc">Describe your symptoms and we'll guide you to the right service.</span>
+                    </button>
+                    <button type="button" class="route-card" id="route-directory" data-route="directory">
+                        <span class="route-icon">📋</span>
+                        <span class="route-title">I Know What Service I Need</span>
+                        <span class="route-desc">Browse services and go directly to the one you need.</span>
+                    </button>
+                    <button type="button" class="route-card" id="route-scribe" data-route="scribe">
+                        <span class="route-icon">🩺</span>
+                        <span class="route-title">Physician / NP Portal</span>
+                        <span class="route-desc">AI Scribe enrollment for providers.</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ═══ Chat / Intake View (with decision graph) ═══ -->
+            <div id="chat-view" class="view-container view-hidden">
+                <div class="chat-with-graph">
+                    <div class="decision-graph-panel" id="decision-graph-panel">
+                        <h3 class="graph-title">Decision Pipeline</h3>
+                        <div class="graph-nodes" id="graph-nodes">
+                            <div class="graph-node" data-stage="user_input">User Input</div>
+                            <div class="graph-node" data-stage="symptom_parser">Intent Classification</div>
+                            <div class="graph-node" data-stage="risk_engine">Risk Check</div>
+                            <div class="graph-node" data-stage="eligibility_engine">Eligibility</div>
+                            <div class="graph-node" data-stage="routing_engine">Routing</div>
+                            <div class="graph-node" data-stage="optimization">Optimization</div>
+                            <div class="graph-node" data-stage="recommendation">Recommendation</div>
+                        </div>
+                    </div>
+                    <div class="chat-container">
                     <div id="chat-messages" class="chat-messages"></div>
                     <div id="chat-input-area" class="chat-input-area">
                         <textarea id="chat-input" rows="2" placeholder="Type your message…" disabled></textarea>
@@ -73,7 +109,58 @@
                             <button type="button" id="send-btn" class="btn-send" disabled>Send</button>
                         </div>
                     </div>
+                    </div>
                 </div>
+            </div>
+
+            <!-- ═══ Service Directory View (I Know What Service I Need) ═══ -->
+            <div id="service-directory-view" class="view-container view-hidden">
+                <button type="button" class="btn-back" id="directory-back">← Back</button>
+                <h2 class="welcome-heading">Service Directory</h2>
+                <p class="welcome-sub">Select a service to go directly to it. This bypasses the conversational intake.</p>
+                <div class="service-directory-list" id="service-directory-list"></div>
+            </div>
+
+            <!-- ═══ Physician / NP AI Scribe Portal ═══ -->
+            <div id="scribe-view" class="view-container view-hidden">
+                <button type="button" class="btn-back" id="scribe-back">← Back</button>
+                <h2 class="welcome-heading">AI Scribe Enrollment</h2>
+                <p class="welcome-sub">Physicians and Nurse Practitioners practicing in Nova Scotia may enroll for AI Scribe.</p>
+                <div class="scribe-eligibility">
+                    <h4>Eligibility requirements</h4>
+                    <ul>
+                        <li>Primary Care Physician or Nurse Practitioner</li>
+                        <li>Practicing in Nova Scotia</li>
+                        <li>Good standing with regulatory college</li>
+                        <li>Actively using EMR</li>
+                        <li>Attend training</li>
+                        <li>Use AI Scribe ≥10 times per month</li>
+                        <li>Adhere to AI Scribe policy</li>
+                    </ul>
+                </div>
+                <form id="scribe-form" class="scribe-form">
+                    <div class="input-wrap">
+                        <label for="scribe-name">Name</label>
+                        <input type="text" id="scribe-name" required placeholder="Full name">
+                    </div>
+                    <div class="input-wrap">
+                        <label for="scribe-license">License number</label>
+                        <input type="text" id="scribe-license" required placeholder="Regulatory college license #">
+                    </div>
+                    <div class="input-wrap">
+                        <label for="scribe-clinic">Clinic</label>
+                        <input type="text" id="scribe-clinic" required placeholder="Clinic or practice name">
+                    </div>
+                    <div class="input-wrap">
+                        <label for="scribe-emr">EMR system</label>
+                        <input type="text" id="scribe-emr" required placeholder="e.g. Med Access, Accuro">
+                    </div>
+                    <div class="input-wrap">
+                        <label for="scribe-email">Contact email</label>
+                        <input type="email" id="scribe-email" required placeholder="Your email">
+                    </div>
+                    <button type="submit" class="btn-primary">Submit Enrollment</button>
+                </form>
             </div>
 
             <!-- ═══ Join Modal (health card verification) ═══ -->
@@ -94,6 +181,19 @@
             <div id="results-view" class="view-container view-hidden">
                 <button type="button" id="back-btn" class="btn-back">← Start Over</button>
 
+                <div class="results-graph-panel" id="results-graph-panel">
+                    <h4 class="graph-title">Decision Pipeline</h4>
+                    <div class="graph-nodes graph-nodes-inline" id="results-graph-nodes">
+                        <div class="graph-node" data-stage="user_input">User Input</div>
+                        <div class="graph-node" data-stage="symptom_parser">Intent</div>
+                        <div class="graph-node" data-stage="risk_engine">Risk</div>
+                        <div class="graph-node" data-stage="eligibility_engine">Eligibility</div>
+                        <div class="graph-node" data-stage="routing_engine">Routing</div>
+                        <div class="graph-node" data-stage="optimization">Optimization</div>
+                        <div class="graph-node" data-stage="recommendation">Recommendation</div>
+                    </div>
+                </div>
+
                 <div class="result-hero" id="result-hero">
                     <div class="result-emoji">🏥</div>
                     <h2 class="result-heading">We recommend…</h2>
@@ -104,6 +204,11 @@
                 <div class="result-options" id="result-options">
                     <h3>Your Options</h3>
                     <div id="options-list" class="options-list"></div>
+                </div>
+
+                <div class="optimization-explanation-panel" id="optimization-explanation-panel">
+                    <h4>Why this route was selected</h4>
+                    <p id="optimization-explanation-text"></p>
                 </div>
 
                 <div class="lp-model-panel" id="lp-model-panel">
